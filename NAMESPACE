@@ -1,0 +1,13 @@
+export(bst,
+       bst_control, gaussloss, hingeloss, loss, gaussngra, hingengra, ngradient, plotCVbst, cv.bst, mhinge) 
+exportClasses("bst")
+exportClasses("mhinge")
+exportMethods("show")
+
+S3method(plot, bst)
+S3method(print, bst)
+S3method(coef, bst)
+S3method(predict, bst)
+S3method(print, mhinge)
+
+
