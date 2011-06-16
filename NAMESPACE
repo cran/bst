@@ -1,6 +1,7 @@
 export(bst,
-       bst_control, gaussloss, hingeloss, loss, gaussngra, hingengra, ngradient, plotCVbst, cv.bst, mhinge) 
-exportClasses("bst")
+       bst_control, gaussloss, hingeloss, loss, gaussngra, hingengra, ngradient, plotCVbst, cv.bst, fpartial.bst, mhinge,
+       msvm_fit, msvm, loss.msvm, cv.msvm, fpartial.msvm, ex1data)
+exportClasses("bst", "msvm")
 exportClasses("mhinge")
 exportMethods("show")
 
@@ -9,5 +10,8 @@ S3method(print, bst)
 S3method(coef, bst)
 S3method(predict, bst)
 S3method(print, mhinge)
+
+S3method(print, msvm)
+S3method(predict, msvm)
 
 
