@@ -4,6 +4,7 @@
 \alias{predict.bst}
 \alias{plot.bst}
 \alias{coef.bst}
+\alias{fpartial.bst}
 \title{ Boosting for Classification and Regression}
 \description{
   Gradient boosting for optimizing hinge or squared error loss functions with componentwise
@@ -14,9 +15,10 @@
 bst(x, y, cost = 0.5, family = c("hinge", "gaussian"), ctrl = bst_control(), 
 control.tree = list(maxdepth = 1), learner = c("ls", "sm", "tree"))
 \method{print}{bst}(x, ...)
-\method{predict}{bst}(object, newdata=NULL, mstop=NULL, type=c("response", "class"), ...)
+\method{predict}{bst}(object, newdata=NULL, newy=NULL, mstop=NULL, type=c("response", "all.res", "class", "loss", "error"), ...)
 \method{plot}{bst}(x, type = c("step", "norm"),...)
 \method{coef}{bst}(object, ...)
+\method{fpartial}{bst}(object, mstop=NULL, newdata=NULL)
 }
 \arguments{
   \item{x}{ a data frame containing the variables in the model.}
@@ -33,33 +35,24 @@ Implementing the negative gradient corresponding
       \code{sm} smoothing splines,
       \code{tree} regression trees.
 }
-  \item{type}{ in \code{predict} a character indicating whether the response or
-               (classes) should be predicted in case of \code{hinge} 
+  \item{type}{ in \code{predict} a character indicating whether the response, all responses across the boosting iterations, classes, loss or classification errors should be predicted in case of \code{hinge} 
                problems. in \code{plot}, plot of boosting iteration or $L_1$ norm. }
   \item{object}{ class of \code{\link{bst}}. }
   \item{newdata}{ new data for prediction with the same number of columns as \code{x}. }
+  \item{newy}{ new response. }
   \item{mstop}{ boosting iteration for prediction. }
   \item{\dots}{ additional arguments. }
 }
 \details{
- A linear or nonlinear classifier is fitted using a boosting algorithm based on component-wise
-  base learners for +1/-1 responses. For continuous responses, a linear or nonlinear model is fitted.
+ A linear or nonlinear classifier is fitted using a boosting algorithm for +1/-1 responses. 
 }
 \value{
   An object of class \code{bst} with \code{\link{print}}, \code{\link{coef}},
-  \code{\link{plot}} and \code{\link{predict}} methods being available for linear models.
-  For nonlinear models, methods \code{\link{print}} and \code{\link{predict}} available.
+  \code{\link{plot}} and \code{\link{predict}} methods are available for linear models.
+  For nonlinear models, methods \code{\link{print}} and \code{\link{predict}} are available.
 }
 \references{
 
-  Peter Buhlmann and Torsten Hothorn (2007),
-  Boosting algorithms: regularization, prediction and model fitting.
-  \emph{Statistical Science}, \bold{22}(4), 477--505.
-  
-  Peter Buhlmann and Torsten Hothorn (2010),
-  Twin Boosting: improved feature selection and prediction.
-  \emph{Statistics and Computing}, \bold{20}(2), 119--138.
- 
   Zhu Wang (2011),
   HingeBoost: ROC-Based Boost for Classification and Variable Selection.
   \emph{The International Journal of Biostatistics}, \bold{7}(1), Article 13.
@@ -79,4 +72,4 @@ dat.m <- bst(x, y, ctrl = bst_control(mstop=50), family = "hinge", learner = "ls
 dat.m1 <- bst(x, y, ctrl = bst_control(twinboost=TRUE, 
 f.init=predict(dat.m), xselect.init = dat.m$xselect, mstop=50))
 }
-\keyword{regression}
+\keyword{classification}

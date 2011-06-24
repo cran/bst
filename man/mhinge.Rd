@@ -42,17 +42,12 @@ learner="ls", m1=200, K=10, cv1=FALSE, twin = FALSE, m2=200, cv2=FALSE)
 }
 \references{
 
-  Peter Buhlmann and Torsten Hothorn (2007),
-  Boosting algorithms: regularization, prediction and model fitting.
-  \emph{Statistical Science}, \bold{22}(4), 477--505.
-  
-  Peter Buhlmann and Torsten Hothorn (2010),
-  Twin Boosting: improved feature selection and prediction.
-  \emph{Statistics and Computing}, \bold{20}(2), 119--138.
- 
   Zhu Wang (2011),
   HingeBoost: ROC-Based Boost for Classification and Variable Selection.
   \emph{The International Journal of Biostatistics}, \bold{7}(1), Article 13.
+
+  Zhu Wang (2011), Multi-class HingeBoost: Method and Application to the Classification of Cancer Types Using Gene Expression Data. Manuscript.
+
 }
 \seealso{\code{\link{bst}} for HingeBoost binary classification. Furthermore see \code{\link{cv.bst}} for stopping iteration selection by cross-validation, and \code{\link{bst_control}} for control parameters.}
 

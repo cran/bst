@@ -1,31 +1,30 @@
-\name{cv.bst}
-\alias{cv.bst}
+\name{cv.msvm}
+\alias{cv.msvm}
 \title{ Cross-Validation }
 \description{
-  Cross-validated estimation of the empirical risk
+  Cross-validated estimation of the empirical multi-class hinge loss
   for boosting parameter selection.
 }
 \usage{
-cv.bst(x, y, K = 10, cost = 0.5, family = c("hinge", "gaussian"), 
+cv.msvm(x, y, K = 10, cost = NULL, family = "hinge", 
 learner = c("tree", "ls", "sm"), ctrl = bst_control(), 
-type = c("risk", "misc"), plot.it = TRUE, se = TRUE, ...)
+type = c("risk","misc"), plot.it = TRUE, se = TRUE, ...)
 }
 \arguments{
   \item{x}{ a data frame containing the variables in the model.}
   \item{y}{ vector of responses. \code{y} must be in \{1, -1\} for \code{family} = "hinge".}
   \item{K}{ K-fold cross-validation }
   \item{cost}{ price to pay for false positive, 0 < \code{cost} < 1; price of false negative is 1-\code{cost}.}
-  \item{family}{ \code{family} = "hinge" for hinge loss and \code{family}="gaussian" for squared error loss.
+  \item{family}{ \code{family} = "hinge" for hinge loss.}
 Implementing the negative gradient corresponding
-                to the loss function to be minimized. By default, hinge loss
-                for +1/-1 binary responses is used.}
+                to the loss function to be minimized. 
   \item{learner}{ a character specifying the component-wise base learner to be used:
       \code{ls} linear models,
       \code{sm} smoothing splines,
       \code{tree} regression trees.
 }
   \item{ctrl}{ an object of class \code{\link{bst_control}}.}
-  \item{type}{ for \code{family="hinge"}, \code{type="risk"} is hinge risk or misclassification error. For \code{family="gaussian"}, only empirical risks. }
+  \item{type}{ for \code{family="hinge"}, \code{type="risk"} is hinge risk.}
   \item{plot.it}{ a logical value, to plot the estimated risks if \code{TRUE}. }
   \item{se}{ a logical value, to plot with standard errors. }
   \item{\dots}{ additional arguments. }

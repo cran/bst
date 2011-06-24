@@ -14,7 +14,7 @@ gaussloss <- function(y, f) 1/2*(y - f)^2
 
 hingeloss <- function(y, f, w=1, a=0.5){
   if(any(!y %in% c(-1, 1)))
-    stop("y must be either 1 or 1\n")
+    stop("y must be either 1 or -1\n")
   if(a >=1 || a <= 0)
     stop("misclassification error cost must be between 0 and 1\n")
   tmp <- 1-y*f
@@ -105,30 +105,29 @@ bst <- function(x,y, cost=0.5, family = c("hinge", "gaussian"), ctrl = bst_contr
   ystar <- res <- matrix(NA,length(y),ncol(x))
   m <- 1
   coef0 <- sse <- minid <- rep(NA,ncol(x))
-  risk <- rep(NA,mstop)
   sse <- minid <- rep(NA,ncol(x))
-  xselect <- coef <- rep(NA, mstop)
+  risk <- xselect <- coef <- rep(NA, mstop)
 
   if(learner=="tree"){
     maxdepth <- control.tree$maxdepth
     if(maxdepth==1){
-      P <- ifelse(!twinboost, p,length(xselect.init))
+      p1 <- ifelse(!twinboost, p,length(xselect.init))
       xselect <- rep(NA,mstop)
       if(twinboost){
         xselect.new <- xselect.init
-        ind <- as.matrix(1:p, ncol=1)
+        inde <- as.matrix(1:p1, ncol=1)
       }
     }
     else if(twinboost && maxdepth==2){
       if(missing(vimp.init)) vimp.init <- rep(1,length(xselect.init))
       if(p > 10){
-        ind <- NULL
+        inde <- NULL
         for (i in 1:numsample)
-          ind <- rbind(ind, sample(xselect.init,maxdepth,prob=vimp.init[vimp.init>0]))
+          inde <- rbind(inde, sample(xselect.init,maxdepth,prob=vimp.init[vimp.init>0]))
       }  
       else
-        ind <- t(combn(xselect.init,2)) #generate interactions
-      P <- dim(ind)[1]
+        inde <- t(combn(xselect.init,2)) #generate interactions
+#      P <- dim(inde)[1]
       xselect <- matrix(NA, ncol=2, nrow=mstop)
       xselect.new <- xselect.init[-(length(xselect.init))]
     }
@@ -170,7 +169,6 @@ bst <- function(x,y, cost=0.5, family = c("hinge", "gaussian"), ctrl = bst_contr
         ind <- which.max(mse.w)
         ml.fit <- tree.twin[[ind]]
         xselect[m] <- ind
-        #xselect[m] <- colnames(x)[ind]
       }
       else
         if(learner=="tree"){
@@ -183,15 +181,16 @@ bst <- function(x,y, cost=0.5, family = c("hinge", "gaussian"), ctrl = bst_contr
             xselect[m] <- which(colnames(x) %in% labs)
           }
           else{
-            tree.twin <- vector("list",nrow(ind))  ### check if correct for maxdepth=1
-            for(j in 1:nrow(ind)){
+            tree.twin <- vector("list",nrow(inde))  ### check if correct for maxdepth=1
+#            for(j in 1:nrow(inde)){
+            for(j in 1:nrow(inde)){
               if(maxdepth==1){
-                data.tr <- as.data.frame(cbind(u,x[,j])); 
-                colnames(data.tr) <- c("u",colnames(x)[j])
+                data.tr <- as.data.frame(cbind(u,x[,xselect.new[j]])); 
+                colnames(data.tr) <- c("u",colnames(x)[xselect.new[j]])
               }
               else{
-                data.tr <- as.data.frame(cbind(u,x[,ind[j,]])); 
-                colnames(data.tr) <- c("u",colnames(x)[ind[j,]])
+                data.tr <- as.data.frame(cbind(u,x[,inde[j,]])); 
+                colnames(data.tr) <- c("u",colnames(x)[inde[j,]])
               }
 ###Twin L2 Boosting with genral weak learner, Buhlmann, page 8, step 4, in Twin boosting, improved feature selection and prediction
 ### cf weakboostadapt.rpart in twin.R by Buhlmann, received from Horton in 2009
@@ -218,7 +217,7 @@ bst <- function(x,y, cost=0.5, family = c("hinge", "gaussian"), ctrl = bst_contr
       Fboost <- Fboost + nu * predict(ml.fit)
     risk[m] <- mean(loss(y, Fboost, cost = cost, family = family))
     if(trace){
-      if(m %% 10) cat("\nm=", m, "  risk = ", risk[m])
+      if(m %% 10==0) cat("\nm=", m, "  risk = ", risk[m])
     } 
     ens[[m]] <- ml.fit
     m <- m + 1
@@ -227,18 +226,19 @@ bst <- function(x,y, cost=0.5, family = c("hinge", "gaussian"), ctrl = bst_contr
   ensemble <- xselect
 #  if(!twinboost) xselect <- sort(unique(xselect))
   xselect <- sort(unique(xselect))
-  RET <- list(y=y,x=oldx, family = family, learner=learner, yhat=Fboost,offset=offset, ens=ens, control.tree=control.tree, risk=risk, ctrl = list(center=center, mstop=mstop,nu=nu, df=df), xselect=xselect, coef = coef, ensemble=ensemble)
+  RET <- list(y=y,x=oldx, cost=cost, family = family, learner=learner, yhat=Fboost,offset=offset, ens=ens, control.tree=control.tree, risk=risk, ctrl = list(center=center, mstop=mstop,nu=nu, df=df), xselect=xselect, coef = coef, ensemble=ensemble)
   RET$call <- call
   class(RET) <- "bst"
   return(RET)
 }
 
-#predict.bst <- function(object,...){
-predict.bst <- function(object, newdata=NULL, mstop=NULL, type=c("response", "class"), ...){
+predict.bst <- function(object, newdata=NULL, newy=NULL, mstop=NULL, type=c("response", "all.res", "class", "loss", "error"), ...){
   if(is.null(mstop))
     mstop <- object$ctrl$mstop
   else if(mstop > object$ctrl$mstop)
       stop("mstop must be equal or smaller than the one used for estimation ", object$ctrl$mstop)
+#  if((type=="loss" || type=="error") && (is.null(newdata) || is.null(newy)))
+#    stop("For estimation of loss or error, both newdata and newy are needed\n")
   if (!is.null(newdata)) {
     if (is.null(colnames(newdata)))
       stop("missing column names for ", sQuote("newdata"))
@@ -246,6 +246,10 @@ predict.bst <- function(object, newdata=NULL, mstop=NULL, type=c("response", "cl
   type <- match.arg(type)
   one <- rep(1,nrow(object$x))
   x <- object$x
+  y <- object$y
+  if(is.null(newdata) && is.null(newy))
+  ynow <- y
+  else ynow <- newy
   if(!missing(newdata)){
     if(object$ctrl$center){
       meanx <- drop(one %*% as.matrix(x))/nrow(x)
@@ -255,7 +259,12 @@ predict.bst <- function(object, newdata=NULL, mstop=NULL, type=c("response", "cl
   ens <- object$ens
   lp <- object$offset
   nu <- object$ctrl$nu
+  cost <- object$cost
+  family <- object$family
   if (is.matrix(newdata)) newdata <- as.data.frame(newdata)
+  risk <- rep(NA, mstop)
+  if(missing(newdata)) res <- matrix(NA, ncol=mstop, nrow=dim(x)[1])
+  else res <- matrix(NA, ncol=mstop, nrow=dim(newdata)[1])
   for(m in 1:mstop){
     if(missing(newdata)){
       if(object$learner=="tree") 
@@ -269,17 +278,28 @@ predict.bst <- function(object, newdata=NULL, mstop=NULL, type=c("response", "cl
         lp <- lp + nu * predict(object$ens[[m]], newdata[, object$ensemble[m]])$y
       else if(object$learner=="ls")
         lp <- lp + nu * object$coef[m] * newdata[, object$ensemble[m]]
+    if(type=="all.res")
+     res[,m] <- lp
+     else if(type=="loss"){
+#     risk[m] <- mean(loss(newy, lp, cost = cost, family = family))
+     risk[m] <- mean(loss(ynow, lp, cost = cost, family = family))
+     }
+     else if(type == "error"){
+      tmp <- sign(lp)
+#      risk[m] <- (mean(newy != tmp))
+      risk[m] <- (mean(ynow != tmp))
+    }
   }
-  if(object$learner == "ls" && type == "class")
+
+  if(type == "all.res")
+   return(res)
+  else 
+  if(type == "class")
   lp <- sign(lp)
+  else if(type %in% c("loss", "error")) lp <- risk
   return(drop(lp))
 }
 
-"cv.folds" <-
-  function(n, folds = 10)
-{
-  split(sample(1:n), rep(1:folds, length = n))
-}
 "cv.bst" <-
   function(x, y, K = 10, cost = 0.5, family = c("hinge", "gaussian"), learner = c("tree","ls", "sm"), ctrl = bst_control(), type = c("risk", "misc"), plot.it = TRUE, se = TRUE, ...)
 {
@@ -301,6 +321,8 @@ predict.bst <- function(object, newdata=NULL, mstop=NULL, type=c("response", "cl
   m1 <- 1:length(fraction)
   residmat <- matrix(0, length(fraction), K)
   for(i in seq(K)) {
+    if(trace)
+      cat("\n CV Fold", i, "\n\n")
     omit <- all.folds[[i]]
     if(ctrl$twinboost)
     ctrl.cv$f.init <- ctrl$f.init[ - omit]
@@ -332,38 +354,12 @@ predict.bst <- function(object, newdata=NULL, mstop=NULL, type=c("response", "cl
       tmp <- sapply(m1, function(m) loss(y[omit], fit[,m], cost = cost, family = family))
       residmat[, i] <- apply(tmp, 2, mean)
     }
-    if(trace)
-      cat("\n CV Fold", i, "\n\n")
   }
   cv <- apply(residmat, 1, mean)
   cv.error <- sqrt(apply(residmat, 1, var)/K)
-  object<-list(fraction = fraction, cv = cv, cv.error = cv.error)
+  object<-list(residmat = residmat, fraction = fraction, cv = cv, cv.error = cv.error)
   if(plot.it) plotCVbst(object,se=se)
   invisible(object)
-}
-
-"plotCVbst" <-
-  function(cv.bst.object,se=TRUE){
-    attach(cv.bst.object)
-    plot(fraction, cv, type = "b", xlab = "Boosting iteration", ylim = range(cv, cv + cv.error,
-                                                                  cv - cv.error))
-    if(se)
-      error.bars(fraction, cv + cv.error, cv - cv.error,
-                 width = 1/length(fraction))
-    detach(cv.bst.object)
-
-    invisible()
-  }
-
-"error.bars" <-
-  function(x, upper, lower, width = 0.02, ...)
-{
-  xlim <- range(x)
-  barw <- diff(xlim) * width
-  segments(x, upper, x, lower, ...)
-  segments(x - barw, upper, x + barw, upper, ...)
-  segments(x - barw, lower, x + barw, lower, ...)
-  range(upper, lower)
 }
 
 print.bst <- function(x, ...) {
@@ -439,9 +435,9 @@ plot.bst <- function(x, type=c("step","norm"), ...) {
   else col = 1
   x <- apply(cp, 1, function(x) sum(abs(x)))
   if(type == "step")
-    matplot(cp, type = "l", col = col, xlim=xlim, xlab = "Number of boosting iterations",
+    matplot(cp, type = "l", col = col, xlab = "Number of boosting iterations",
             ylab = "Coefficients", ...)
-  else matplot(x, cp, type = "l", col = col, xlim=xlim, xlab = "L_1 norm",
+  else matplot(x, cp, type = "l", col = col, xlab = "L_1 norm",
                ylab = "Coefficients", ...)
   axis(4, at = cp[nrow(cp),],labels = colnames(cp))
 }
