@@ -1,6 +1,6 @@
 export(bst,
-       bst_control, gaussloss, hingeloss, loss, gaussngra, hingengra, ngradient, plotCVbst, cv.bst, fpartial.bst, mhinge,
-       msvm_fit, msvm, loss.msvm, cv.msvm, fpartial.msvm, ex1data)
+       bst_control, gaussloss, hingeloss, loss, gaussngra, hingengra, ngradient, plotCVbst, cv.bst, fpartial.bst, mhinge, cv.mhinge, mada, cv.mada, 
+       msvm_fit, msvm, loss.msvm, cv.msvm, fpartial.msvm, ex1data, balanced.folds, permute.rows)
 exportClasses("bst", "msvm")
 exportClasses("mhinge")
 exportMethods("show")

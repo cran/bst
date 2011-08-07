@@ -83,6 +83,7 @@ bst <- function(x,y, cost=0.5, family = c("hinge", "gaussian"), ctrl = bst_contr
   trace <- ctrl$trace
   numsample <- ctrl$numsample
   df <- ctrl$df
+  maxdepth <- control.tree$maxdepth
   if(twinboost && (is.null(f.init) | is.null(xselect.init)))
     stop("Twin boosting requires initial function estimates and variable selected in the first round\n")
   nsample <- dim(x)[1]
@@ -106,13 +107,13 @@ bst <- function(x,y, cost=0.5, family = c("hinge", "gaussian"), ctrl = bst_contr
   m <- 1
   coef0 <- sse <- minid <- rep(NA,ncol(x))
   sse <- minid <- rep(NA,ncol(x))
-  risk <- xselect <- coef <- rep(NA, mstop)
+  risk <- coef <- rep(NA, mstop)
 
   if(learner=="tree"){
-    maxdepth <- control.tree$maxdepth
+#    maxdepth <- control.tree$maxdepth
     if(maxdepth==1){
       p1 <- ifelse(!twinboost, p,length(xselect.init))
-      xselect <- rep(NA,mstop)
+#      xselect <- rep(NA,mstop)
       if(twinboost){
         xselect.new <- xselect.init
         inde <- as.matrix(1:p1, ncol=1)
@@ -128,14 +129,20 @@ bst <- function(x,y, cost=0.5, family = c("hinge", "gaussian"), ctrl = bst_contr
       else
         inde <- t(combn(xselect.init,2)) #generate interactions
 #      P <- dim(inde)[1]
-      xselect <- matrix(NA, ncol=2, nrow=mstop)
+#      xselect <- matrix(NA, ncol=2, nrow=mstop)
       xselect.new <- xselect.init[-(length(xselect.init))]
     }
   }
+   if(learner=="tree")
+   xselect <- vector("list", mstop)
+   else xselect<- rep(NA,mstop)
+#     if(maxdepth == 1) xselect <- rep(NA, mstop)
   while (m <= mstop){
     cor.w <- mse.w <- coef.w <- rep(NA,p)
     u <- ngradient(y, Fboost, cost = cost, family = family)
     if(!twinboost) xselect.init <- 1:p
+### remove the following line
+    cor.w1 <- mse.w1 <- mse.w2 <- mse.w3 <- rep(NA, p)  ### need to remove
     if(learner=="ls"){
       for (j in xselect.init){
         coef0[j] <- 1/sum(x[,j]^2)*sum(x[,j] * u)
@@ -144,9 +151,20 @@ bst <- function(x,y, cost=0.5, family = c("hinge", "gaussian"), ctrl = bst_contr
         if(twinboost){
           cor.w[j] <- cov(f.init,pred.tr)/sqrt(sum(pred.tr^2))
           mse.w[j] <- cor.w[j]^2 * (2*sum(u*pred.tr) - ss)
+### remove the following three lines
+#          cor.w1[j] <- cor(f.init, pred.tr) ### remove
+#          mse.w1[j] <- cor.w1[j]^2 * (2*sum(u*pred.tr) - ss) ### remove
+#          mse.w2[j] <- (1-cor.w1[j]^2)*sum((pred.tr - u)^2) ### remove
+#          mse.w3[j] <- -cor.w1[j]^2*sum((pred.tr - u)^2) ### remove
         }
         else mse.w[j] <- 2*sum(u*pred.tr) - ss
       }
+### remove the next line
+#      if(twinboost){
+#          if(which.max(mse.w) != which.min(mse.w3)) 
+#          cat("j=", j, "different resutls\n")
+#      cat("mse.w", which.max(mse.w), "mse.w3", which.min(mse.w3)) 
+#     }
       ind <- which.max(mse.w)
       ml.fit <- lm(u~x[, ind]-1)
       coef[m] <- coef0[ind]
@@ -163,6 +181,10 @@ bst <- function(x,y, cost=0.5, family = c("hinge", "gaussian"), ctrl = bst_contr
           if(twinboost){   
             cor.w[j] <- cov(f.init,pred.tr)/sqrt(sum(pred.tr^2))
             mse.w[j] <- cor.w[j]^2 * (2*sum(u*pred.tr) - ss)
+#          cor.w1[j] <- cor(f.init, pred.tr) ### remove
+#          mse.w1[j] <- cor.w1[j]^2 * (2*sum(u*pred.tr) - ss) ### remove
+#          mse.w2[j] <- (1-cor.w1[j]^2)*sum((pred.tr - u)^2) ### remove
+#          mse.w3[j] <- -cor.w1[j]^2*sum((pred.tr - u)^2) ### remove
           }
           else mse.w[j] <- 2*sum(u*pred.tr) - ss
         }   
@@ -178,7 +200,7 @@ bst <- function(x,y, cost=0.5, family = c("hinge", "gaussian"), ctrl = bst_contr
           if(!twinboost){
             ml.fit <- rpart(u~.,data=data.frame(cbind(u,x)),method="anova",control=cntrl)
             labs <- rownames(ml.fit[["splits"]])
-            xselect[m] <- which(colnames(x) %in% labs)
+            xselect[[m]] <- which(colnames(x) %in% labs)
           }
           else{
             tree.twin <- vector("list",nrow(inde))  ### check if correct for maxdepth=1
@@ -199,14 +221,19 @@ bst <- function(x,y, cost=0.5, family = c("hinge", "gaussian"), ctrl = bst_contr
               ss <- sum(pred.tr^2)
               cor.w[j] <- cov(f.init,pred.tr)/sqrt(ss)
               mse.w[j] <- cor.w[j]^2 * (2*sum(u*pred.tr) - ss)
+#          cor.w1[j] <- cor(f.init, pred.tr) ### remove
+#          mse.w1[j] <- cor.w1[j]^2 * (2*sum(u*pred.tr) - ss) ### remove
+#          mse.w2[j] <- (1-cor.w1[j]^2)*sum((pred.tr - u)^2) ### remove
+#          mse.w3[j] <- -cor.w1[j]^2*sum((pred.tr - u)^2) ### remove
             }
             ml.fit <- tree.twin[[which.max(mse.w)]]
-            if(maxdepth==1) xselect[m] <- which.max(mse.w)
+            if(maxdepth==1) xselect[[m]] <- which.max(mse.w)
             else {
               tmp <- ml.fit$frame$var[ml.fit$frame$var%in%colnames(x)]
               tmp <- unique(tmp)
               if(length(tmp)!=0)
-                xselect[m,] <- as.character(tmp)
+                xselect[[m]] <- as.character(tmp)
+#                xselect[m,] <- as.character(tmp)
             }
           }
         }
@@ -225,8 +252,8 @@ bst <- function(x,y, cost=0.5, family = c("hinge", "gaussian"), ctrl = bst_contr
 
   ensemble <- xselect
 #  if(!twinboost) xselect <- sort(unique(xselect))
-  xselect <- sort(unique(xselect))
-  RET <- list(y=y,x=oldx, cost=cost, family = family, learner=learner, yhat=Fboost,offset=offset, ens=ens, control.tree=control.tree, risk=risk, ctrl = list(center=center, mstop=mstop,nu=nu, df=df), xselect=xselect, coef = coef, ensemble=ensemble)
+  xselect <- sort(unique(unlist(xselect)))
+  RET <- list(y=y,x=oldx, cost=cost, family = family, learner=learner, yhat=Fboost,offset=offset, ens=ens, control.tree=control.tree, risk=risk, ctrl = list(center=center, mstop=mstop,nu=nu, df=df), maxdepth=maxdepth, xselect=xselect, coef = coef, ensemble=ensemble, ml.fit=ml.fit)
   RET$call <- call
   class(RET) <- "bst"
   return(RET)
@@ -308,7 +335,6 @@ predict.bst <- function(object, newdata=NULL, newy=NULL, mstop=NULL, type=c("res
   learner <- match.arg(learner)
   type <- match.arg(type)
   family <- match.arg(family)
-  learner <- match.arg(learner)
   mstop <- ctrl$mstop
   nu <- ctrl$nu
   df <- ctrl$df
@@ -354,6 +380,8 @@ predict.bst <- function(object, newdata=NULL, newy=NULL, mstop=NULL, type=c("res
       tmp <- sapply(m1, function(m) loss(y[omit], fit[,m], cost = cost, family = family))
       residmat[, i] <- apply(tmp, 2, mean)
     }
+  if(trace && i==K)
+  cat("End of cross-validation\n")
   }
   cv <- apply(residmat, 1, mean)
   cv.error <- sqrt(apply(residmat, 1, var)/K)
