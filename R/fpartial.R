@@ -4,6 +4,9 @@ fpartial.bst <- function (object, mstop=NULL, newdata=NULL)
     mstop <- object$ctrl$mstop
   else if(mstop > object$ctrl$mstop)
     stop("mstop must be equal or smaller than the one used for estimation ", object$ctrl$mstop)
+  if(object$learner=="tree" && object$maxdepth > 1)
+  stop("Not implemented for higher order tree\n")
+  if(object$learner=="tree")
   one <- rep(1,nrow(object$x))
   x <- object$x
   if(is.null(newdata))
@@ -25,7 +28,9 @@ fpartial.bst <- function (object, mstop=NULL, newdata=NULL)
     lp <- matrix(object$offset, nrow=p, dim(x)[2])
   if (is.matrix(newdata)) newdata <- as.data.frame(newdata)
   for(m in 1:mstop){
-      xselect <- object$ensemble[m]
+      if(object$learner=="tree")
+      xselect <- object$ensemble[[m]]
+      else xselect <- object$ensemble[m]
       if(object$learner=="tree")
         lp[,xselect] <- lp[,xselect] + nu*predict(ens[[m]], newdata = newdata)
       else if(object$learner=="sm")

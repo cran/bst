@@ -1,6 +1,6 @@
 \name{cv.bst}
 \alias{cv.bst}
-\title{ Cross-Validation }
+\title{ Cross-Validation for Binary HingeBoost}
 \description{
   Cross-validated estimation of the empirical risk
   for boosting parameter selection.
@@ -25,7 +25,7 @@ Implementing the negative gradient corresponding
       \code{tree} regression trees.
 }
   \item{ctrl}{ an object of class \code{\link{bst_control}}.}
-  \item{type}{ for \code{family="hinge"}, \code{type="risk"} is hinge risk or misclassification error. For \code{family="gaussian"}, only empirical risks. }
+  \item{type}{ cross-validation criteria. For \code{family="hinge"}, \code{type="risk"} is hinge risk and \code{type="misc"} is misclassification error. For \code{family="gaussian"}, only empirical risks. }
   \item{plot.it}{ a logical value, to plot the estimated risks if \code{TRUE}. }
   \item{se}{ a logical value, to plot with standard errors. }
   \item{\dots}{ additional arguments. }
@@ -34,9 +34,9 @@ Implementing the negative gradient corresponding
 \value{
   object with
   \item{residmat }{ empirical risks in each cross-validation at boosting iterations }
-  \item{fraction }{ number of boosting iterations }
-  \item{cv }{ empirical risks with cross-validation at boosting iteration \code{fraction}. }
-  \item{cv.err }{ empirical risks standard errors with cross-validation at boosting iteration \code{fraction}. }
+  \item{fraction}{ abscissa values at which CV curve should be computed. }
+  \item{cv}{The CV curve at each value of fraction}
+  \item{cv.error}{The standard error of the CV curve}
   ...
 }
 \seealso{ \code{\link{bst}} }

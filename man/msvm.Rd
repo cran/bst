@@ -5,13 +5,12 @@
 \alias{fpartial.msvm}
 \title{ Boosting for Multi-class Classification}
 \description{
-  Gradient boosting for optimizing multi-class hinge loss functions with componentwise
-  linear, smoothing splines, tree models as base learners.
+  Gradient boosting for optimizing multi-class hinge loss functions with componentwise linear least squares, smoothing splines and trees as base learners.
 }
 
 \usage{
 msvm(x, y, cost = NULL, family = c("hinge"), ctrl = bst_control(), 
-control.tree = list(maxdepth = 1), learner = c("ls", "sm", "tree"))
+control.tree = list(fixed.depth=TRUE, n.term.node=6, maxdepth = 1), learner = c("ls", "sm", "tree"))
 \method{print}{msvm}(x, ...)
 \method{predict}{msvm}(object, newdata=NULL, newy=NULL, mstop=NULL, type=c("response", "class", "loss", "error"), ...)
 \method{fpartial}{msvm}(object, mstop=NULL, newdata=NULL)
@@ -29,7 +28,6 @@ control.tree = list(maxdepth = 1), learner = c("ls", "sm", "tree"))
       \code{tree} regression trees.
 }
   \item{type}{ in \code{predict} a character indicating whether the response, classes, loss or classification errors should be predicted in case of \code{hinge}} 
-               problems. 
   \item{object}{ class of \code{\link{msvm}}. }
   \item{newdata}{ new data for prediction with the same number of columns as \code{x}. }
   \item{newy}{ new response. }
@@ -59,6 +57,5 @@ control.tree = list(maxdepth = 1), learner = c("ls", "sm", "tree"))
 \examples{
 dat <- ex1data(200)
 res <- msvm(x=dat$x, y=dat$y)
-predict(res)
 }
 \keyword{classification}
