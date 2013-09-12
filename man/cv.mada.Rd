@@ -5,7 +5,8 @@
   Cross-validated estimation of the empirical misclassification error for boosting parameter selection.
 }
 \usage{
-cv.mada(x, y, balance=FALSE, K=10, nu=0.1, mstop=200, interaction.depth=1, trace=FALSE, plot.it = TRUE, se = TRUE, ...)
+cv.mada(x, y, balance=FALSE, K=10, nu=0.1, mstop=200, interaction.depth=1, 
+trace=FALSE, plot.it = TRUE, se = TRUE, ...)
 }
 \arguments{
   \item{x}{ a data matrix containing the variables in the model.}

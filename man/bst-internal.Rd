@@ -8,8 +8,8 @@
 \alias{plotCVbst}
 \alias{cvfolds}
 \alias{error.bars}
-\alias{loss.msvm}
-\alias{msvm_fit}
+\alias{loss.mhingebst}
+\alias{mhingebst_fit}
 \alias{balanced.folds}
 \alias{permute.rows}
 \title{Internal Function}

@@ -1,4 +1,4 @@
-msvm_fit <- function(x, y, Fboost, yv, lq, b, learner, twinboost=FALSE, f.init=NULL, xselect.init=NULL, fixed.depth=TRUE, n.term.node=6, maxdepth=1, nu=0.1, df=4, inde=inde){
+mhingebst_fit <- function(x, y, Fboost, yv, lq, b, learner, twinboost=FALSE, f.init=NULL, xselect.init=NULL, fixed.depth=TRUE, n.term.node=6, maxdepth=1, nu=0.1, df=4, inde=inde){
   p <- dim(x)[2]
   k <- length(table(y))
   ind <- coef <- rep(NA, k)
@@ -196,12 +196,12 @@ msvm_fit <- function(x, y, Fboost, yv, lq, b, learner, twinboost=FALSE, f.init=N
   }
   Fboost[,b] <- -apply(as.matrix(Fboost[,-b]), 1, sum) ### sum-to-zero
 ### empirical loss
-  risk <- loss.msvm(y, Fboost, k)
+  risk <- loss.mhingebst(y, Fboost, k)
   ensemble <- xselect
   return(list(b=b, Fboost=Fboost, ens=ml.fit, risk=risk, xselect=xselect, coef=coef))
 } 
 
-loss.msvm <- function(y, f, k, type=c("total","all"), cost=NULL){
+loss.mhingebst <- function(y, f, k, type=c("total","all"), cost=NULL){
   type <- match.arg(type)
   v <- matrix(rep(-1/(k-1), k*k), ncol=k)
   diag(v) <- 1
@@ -218,7 +218,7 @@ loss.msvm <- function(y, f, k, type=c("total","all"), cost=NULL){
 }
 
 #######################################################################################################################################################
-msvm <- function(x,y, cost=NULL, family = c("hinge"), ctrl = bst_control(), control.tree=list(fixed.depth=TRUE, n.term.node=6, maxdepth=1), learner=c("ls", "sm", "tree")){
+mhingebst <- function(x,y, cost=NULL, family = c("hinge"), ctrl = bst_control(), control.tree=list(fixed.depth=TRUE, n.term.node=6, maxdepth=1), learner=c("ls", "sm", "tree")){
   call <- match.call()
   if(any(y < 1)) stop("y must > 0 \n")
   family <- match.arg(family)
@@ -290,7 +290,7 @@ msvm <- function(x,y, cost=NULL, family = c("hinge"), ctrl = bst_control(), cont
   while (m <= mstop){
     tmp <- rep(NA, k); res <- vector("list", k)
     for(i in 1:k){
-      res[[i]] <- msvm_fit(x=x, y=y, Fboost=Fboost, yv=yv, lq=lq, b=i, learner=learner, twinboost=twinboost, f.init=f.init, xselect.init=xselect.init, fixed.depth=fixed.depth, n.term.node=n.term.node, maxdepth=maxdepth, nu=nu, df=df, inde=inde)
+      res[[i]] <- mhingebst_fit(x=x, y=y, Fboost=Fboost, yv=yv, lq=lq, b=i, learner=learner, twinboost=twinboost, f.init=f.init, xselect.init=xselect.init, fixed.depth=fixed.depth, n.term.node=n.term.node, maxdepth=maxdepth, nu=nu, df=df, inde=inde)
       tmp[i] <- res[[i]]$risk
     }
     optb <- which.min(tmp)
@@ -309,11 +309,11 @@ msvm <- function(x,y, cost=NULL, family = c("hinge"), ctrl = bst_control(), cont
   ensemble <- xselect
   RET <- list(y=y,x=oldx, family = family, learner=learner, k=k, yhat=Fboost, offset=offset, ens=ens, control.tree=control.tree, risk=risk, ctrl = list(center=center, mstop=mstop,nu=nu, df=df), xselect=xselect, coef = coef, ensemble=ensemble, baseclass=baseclass)
   RET$call <- call
-  class(RET) <- "msvm"
+  class(RET) <- "mhingebst"
   return(RET)
 }
 
-predict.msvm <- function(object, newdata=NULL, newy=NULL, mstop=NULL, type=c("response", "class", "loss", "error"), ...){
+predict.mhingebst <- function(object, newdata=NULL, newy=NULL, mstop=NULL, type=c("response", "class", "loss", "error"), ...){
   if(is.null(mstop))
     mstop <- object$ctrl$mstop
   else if(mstop > object$ctrl$mstop)
@@ -371,7 +371,7 @@ predict.msvm <- function(object, newdata=NULL, newy=NULL, mstop=NULL, type=c("re
     }
     lp[,baseclass[m]] <- - rowSums(as.matrix(lp[,-baseclass[m]])) 
     if(type=="loss"){
-      risk[m] <- loss.msvm(ynow, lp, k)
+      risk[m] <- loss.mhingebst(ynow, lp, k)
     }
     else if(type == "error"){
       tmp <- apply(lp, 1, which.max)
@@ -390,7 +390,7 @@ predict.msvm <- function(object, newdata=NULL, newy=NULL, mstop=NULL, type=c("re
   {
     split(sample(1:n), rep(1:folds, length = n))
   }
-"cv.msvm" <-
+"cv.mhingebst" <-
   function(x, y, balance=FALSE, K = 10, cost = NULL, family = "hinge", learner = c("tree","ls", "sm"), ctrl = bst_control(), type = c("risk", "misc"), plot.it = TRUE, se = TRUE, ...)
   {
     call <- match.call()
@@ -416,11 +416,11 @@ predict.msvm <- function(object, newdata=NULL, newy=NULL, mstop=NULL, type=c("re
       omit <- all.folds[[i]]
       if(ctrl$twinboost)
         ctrl.cv$f.init <- ctrl$f.init[ - omit, ]
-      fit <- msvm(x[ - omit,,drop=FALSE  ], y[ - omit], cost = cost, family = family, learner = learner, ctrl = ctrl.cv, ...)
+      fit <- mhingebst(x[ - omit,,drop=FALSE  ], y[ - omit], cost = cost, family = family, learner = learner, ctrl = ctrl.cv, ...)
       if(type=="risk")
-        fit <- predict.msvm(fit, newdata = x[omit,  ,drop=FALSE], newy=y[ omit], mstop = mstop, type="loss")
+        fit <- predict.mhingebst(fit, newdata = x[omit,  ,drop=FALSE], newy=y[ omit], mstop = mstop, type="loss")
       else if(type=="misc")
-        fit <- predict.msvm(fit, newdata = x[omit,  ,drop=FALSE], newy=y[ omit], mstop = mstop, type="error")
+        fit <- predict.mhingebst(fit, newdata = x[omit,  ,drop=FALSE], newy=y[ omit], mstop = mstop, type="error")
       residmat[, i] <- fit
     }
     cv <- apply(residmat, 1, mean)
@@ -458,7 +458,7 @@ predict.msvm <- function(object, newdata=NULL, newy=NULL, mstop=NULL, type=c("re
     range(upper, lower)
   }
 
-print.msvm <- function(x, ...) {
+print.mhingebst <- function(x, ...) {
 
   cat("\n")
   cat("\t Models Fitted with Gradient Boosting\n")
@@ -485,7 +485,7 @@ print.msvm <- function(x, ...) {
   invisible(x)
 }
 
-fpartial.msvm <- function (object, mstop=NULL, newdata=NULL)
+fpartial.mhingebst <- function (object, mstop=NULL, newdata=NULL)
 {   
   if(is.null(mstop))
     mstop <- object$ctrl$mstop
