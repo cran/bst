@@ -1,11 +1,13 @@
-\name{cv.mhinge}
-\alias{cv.mhinge}
+\name{cv.mhingeova}
+\alias{cv.mhingeova}
 \title{ Cross-Validation for one-vs-all HingeBoost with multi-class problem }
 \description{
   Cross-validated estimation of the empirical misclassification error for boosting parameter selection.
 }
 \usage{
-cv.mhinge(x, y, balance=FALSE, K=10, cost = NULL, nu=0.1, learner=c("tree", "ls", "sm"), maxdepth=1, m1=200, twinboost = FALSE, m2=200, trace=FALSE, plot.it = TRUE, se = TRUE, ...)
+cv.mhingeova(x, y, balance=FALSE, K=10, cost = NULL, nu=0.1, 
+learner=c("tree", "ls", "sm"), maxdepth=1, m1=200, twinboost = FALSE, 
+m2=200, trace=FALSE, plot.it = TRUE, se = TRUE, ...)
 }
 \arguments{
   \item{x}{ a data frame containing the variables in the model.}
@@ -39,5 +41,5 @@ proportionally among each of the K parts.}
   \item{cv.error}{The standard error of the CV curve}
   ...
 }
-\seealso{ \code{\link{mhinge}} }
+\seealso{ \code{\link{mhingeova}} }
 \note{ The functions for balanced cross validation were from R package pmar. } 

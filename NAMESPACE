@@ -1,17 +1,17 @@
 export(bst,
-       bst_control, gaussloss, hingeloss, loss, gaussngra, hingengra, ngradient, plotCVbst, cv.bst, fpartial.bst, mhinge, cv.mhinge, mada, cv.mada, 
-       msvm_fit, msvm, loss.msvm, cv.msvm, fpartial.msvm, ex1data, balanced.folds, permute.rows)
-exportClasses("bst", "msvm")
-exportClasses("mhinge")
+       bst_control, gaussloss, hingeloss, loss, gaussngra, hingengra, ngradient, plotCVbst, cv.bst, fpartial.bst, mhingeova, cv.mhingeova, mada, cv.mada, 
+       mhingebst_fit, mhingebst, loss.mhingebst, cv.mhingebst, fpartial.mhingebst, ex1data, balanced.folds, permute.rows)
+exportClasses("bst", "mhingebst")
+exportClasses("mhingeova")
 exportMethods("show")
 
 S3method(plot, bst)
 S3method(print, bst)
 S3method(coef, bst)
 S3method(predict, bst)
-S3method(print, mhinge)
+S3method(print, mhingeova)
 
-S3method(print, msvm)
-S3method(predict, msvm)
+S3method(print, mhingebst)
+S3method(predict, mhingebst)
 
 

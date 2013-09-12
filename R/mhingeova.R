@@ -1,4 +1,4 @@
-mhinge <- function(xtr, ytr, xte=NULL, yte=NULL, cost = NULL, nu=0.1, learner=c("tree", "ls", "sm"), maxdepth=1, m1=200, twinboost=FALSE, m2=200){
+mhingeova <- function(xtr, ytr, xte=NULL, yte=NULL, cost = NULL, nu=0.1, learner=c("tree", "ls", "sm"), maxdepth=1, m1=200, twinboost=FALSE, m2=200){
   call <- match.call()
   n1 <- length(ytr)
   ncla <- length(unique(ytr))
@@ -46,11 +46,11 @@ mhinge <- function(xtr, ytr, xte=NULL, yte=NULL, cost = NULL, nu=0.1, learner=c(
     err.te <- unlist(lapply(1:mstop1, function(j){tmp <- NULL; for(i in 1:ncla) tmp <- cbind(tmp, fit.te[[i]][,j]); 1/length(yte) * sum(yte != apply(tmp, 1, which.max)) }))
 }
   RET=list(call=call, learner=learner, nu=nu, twinboost=twinboost, m1=m1, m2=m2, risk.te=risk.te, err.tr = err.tr, err.te = err.te, ensemble = ensemble, xsel=round(table(xsel)/ncla,2), fpar=fpar)
-  class(RET) = "mhinge"
+  class(RET) = "mhingeova"
   return(RET)
 }
 
-cv.mhinge <- function(x, y, balance=FALSE, K=10, cost = NULL, nu=0.1, learner=c("tree", "ls", "sm"), maxdepth=1, m1=200, twinboost = FALSE, m2=200, trace=FALSE, plot.it = TRUE, se = TRUE, ...)
+cv.mhingeova <- function(x, y, balance=FALSE, K=10, cost = NULL, nu=0.1, learner=c("tree", "ls", "sm"), maxdepth=1, m1=200, twinboost = FALSE, m2=200, trace=FALSE, plot.it = TRUE, se = TRUE, ...)
 {
   call <- match.call()
   learner <- match.arg(learner)
@@ -64,7 +64,7 @@ cv.mhinge <- function(x, y, balance=FALSE, K=10, cost = NULL, nu=0.1, learner=c(
     if(trace)
       cat("\n CV Fold", i, "\n\n")
     omit <- all.folds[[i]]
-    fit <- mhinge(xtr = x[ - omit,,drop=FALSE  ], ytr = y[ - omit], xte = x[ omit,,drop=FALSE ], yte=y[ omit ], cost = cost, nu=nu, learner = learner, maxdepth=maxdepth, m1=m1, twinboost=twinboost, m2=m2)
+    fit <- mhingeova(xtr = x[ - omit,,drop=FALSE  ], ytr = y[ - omit], xte = x[ omit,,drop=FALSE ], yte=y[ omit ], cost = cost, nu=nu, learner = learner, maxdepth=maxdepth, m1=m1, twinboost=twinboost, m2=m2)
 ###cross validation misclassification error
     residmat[,i] <- fit$err.te
   if(trace && i==K)
@@ -77,7 +77,7 @@ cv.mhinge <- function(x, y, balance=FALSE, K=10, cost = NULL, nu=0.1, learner=c(
   invisible(object)
 }
 
-print.mhinge <- function(x, ...) {
+print.mhingeova <- function(x, ...) {
 
   cat("\n")
   cat("\t Multi-class HingeBoost Fitted with One-against-All\n")

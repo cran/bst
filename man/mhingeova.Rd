@@ -1,6 +1,6 @@
-\name{mhinge}
-\alias{mhinge}
-\alias{print.mhinge}
+\name{mhingeova}
+\alias{mhingeova}
+\alias{print.mhingeova}
 \title{ Multi-class HingeBoost}
 \description{
   Multi-class algorithm with one-vs-all binary HingeBoost which optimizes the hinge loss functions with componentwise
@@ -8,9 +8,9 @@
 }
 
 \usage{
-mhinge(xtr, ytr, xte=NULL, yte=NULL, cost = NULL, nu=0.1, 
+mhingeova(xtr, ytr, xte=NULL, yte=NULL, cost = NULL, nu=0.1, 
 learner=c("tree", "ls", "sm"), maxdepth=1, m1=200, twinboost = FALSE, m2=200)
-\method{print}{mhinge}(x, ...)
+\method{print}{mhingeova}(x, ...)
 }
 \arguments{
   \item{xtr}{ training data containing the predictor variables.}
@@ -28,7 +28,7 @@ learner=c("tree", "ls", "sm"), maxdepth=1, m1=200, twinboost = FALSE, m2=200)
   \item{m1}{ number of boosting iteration }
   \item{twinboost}{ logical: twin boosting? }
   \item{m2}{ number of twin boosting iteration }
-  \item{x}{ class of \code{\link{mhinge}}. }
+  \item{x}{ class of \code{\link{mhingeova}}. }
   \item{\dots}{ additional arguments. }
 }
 \details{
@@ -37,7 +37,7 @@ For a C-class problem (C > 2), each class is separately compared against all oth
   base learners for +1/-1 responses, with possible cost-sensitive hinge loss function. 
 }
 \value{
-  An object of class \code{mhinge} with \code{\link{print}} method being available.
+  An object of class \code{mhingeova} with \code{\link{print}} method being available.
 }
 \references{
 
@@ -45,7 +45,7 @@ For a C-class problem (C > 2), each class is separately compared against all oth
   HingeBoost: ROC-Based Boost for Classification and Variable Selection.
   \emph{The International Journal of Biostatistics}, \bold{7}(1), Article 13.
 
-  Zhu Wang (2011), Multi-class HingeBoost: Method and Application to the Classification of Cancer Types Using Gene Expression Data. Manuscript.
+  Zhu Wang (2012), Multi-class HingeBoost: Method and Application to the Classification of Cancer Types Using Gene Expression Data. \emph{Methods of Information in Medicine}, \bold{51}(2), 162--7.
 
 }
 \seealso{\code{\link{bst}} for HingeBoost binary classification. Furthermore see \code{\link{cv.bst}} for stopping iteration selection by cross-validation, and \code{\link{bst_control}} for control parameters.}
@@ -57,10 +57,10 @@ dat1 <- read.table("http://archive.ics.uci.edu/ml/machine-learning-databases/
 thyroid-disease/ann-train.data")
 dat2 <- read.table("http://archive.ics.uci.edu/ml/machine-learning-databases/
 thyroid-disease/ann-test.data")
-res <- mhinge(xtr=dat1[,-22], ytr=dat1[,22], xte=dat2[,-22], yte=dat2[,22], 
+res <- mhingeova(xtr=dat1[,-22], ytr=dat1[,22], xte=dat2[,-22], yte=dat2[,22], 
 cost=c(2/3, 0.5, 0.5), nu=0.5, learner="ls", m1=100, K=5, cv1=FALSE, 
 twinboost=TRUE, m2= 200, cv2=FALSE)
-res <- mhinge(xtr=dat1[,-22], ytr=dat1[,22], xte=dat2[,-22], yte=dat2[,22], 
+res <- mhingeova(xtr=dat1[,-22], ytr=dat1[,22], xte=dat2[,-22], yte=dat2[,22], 
 cost=c(2/3, 0.5, 0.5), nu=0.5, learner="ls", m1=100, K=5, cv1=FALSE, 
 twinboost=TRUE, m2= 200, cv2=TRUE)
 }

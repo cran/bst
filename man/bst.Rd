@@ -15,7 +15,8 @@
 bst(x, y, cost = 0.5, family = c("hinge", "gaussian"), ctrl = bst_control(), 
 control.tree = list(maxdepth = 1), learner = c("ls", "sm", "tree"))
 \method{print}{bst}(x, ...)
-\method{predict}{bst}(object, newdata=NULL, newy=NULL, mstop=NULL, type=c("response", "all.res", "class", "loss", "error"), ...)
+\method{predict}{bst}(object, newdata=NULL, newy=NULL, mstop=NULL, 
+type=c("response", "all.res", "class", "loss", "error"), ...)
 \method{plot}{bst}(x, type = c("step", "norm"),...)
 \method{coef}{bst}(object, ...)
 \method{fpartial}{bst}(object, mstop=NULL, newdata=NULL)

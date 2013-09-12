@@ -1,12 +1,12 @@
-\name{cv.msvm}
-\alias{cv.msvm}
-\title{ Cross-Validation }
+\name{cv.mhingebst}
+\alias{cv.mhingebst}
+\title{ Cross-Validation for Multi-class Hinge Boosting}
 \description{
   Cross-validated estimation of the empirical multi-class hinge loss
   for boosting parameter selection.
 }
 \usage{
-cv.msvm(x, y, balance=FALSE, K = 10, cost = NULL, family = "hinge", 
+cv.mhingebst(x, y, balance=FALSE, K = 10, cost = NULL, family = "hinge", 
 learner = c("tree", "ls", "sm"), ctrl = bst_control(), 
 type = c("risk","misc"), plot.it = TRUE, se = TRUE, ...)
 }
@@ -41,4 +41,4 @@ Implementing the negative gradient corresponding
   \item{cv.error}{The standard error of the CV curve}
   ...
 }
-\seealso{ \code{\link{msvm}} }
+\seealso{ \code{\link{mhingebst}} }
