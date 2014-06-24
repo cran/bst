@@ -328,7 +328,7 @@ predict.bst <- function(object, newdata=NULL, newy=NULL, mstop=NULL, type=c("res
 }
 
 "cv.bst" <-
-  function(x, y, K = 10, cost = 0.5, family = c("hinge", "gaussian"), learner = c("tree","ls", "sm"), ctrl = bst_control(), type = c("risk", "misc"), plot.it = TRUE, se = TRUE, ...)
+  function(x, y, K = 10, cost = 0.5, family = c("hinge", "gaussian"), learner = c("ls", "sm", "tree"), ctrl = bst_control(), type = c("risk", "misc"), plot.it = TRUE, se = TRUE, ...)
 {
   call <- match.call()
   family <- match.arg(family)
@@ -385,7 +385,7 @@ predict.bst <- function(object, newdata=NULL, newy=NULL, mstop=NULL, type=c("res
   }
   cv <- apply(residmat, 1, mean)
   cv.error <- sqrt(apply(residmat, 1, var)/K)
-  object<-list(residmat = residmat, fraction = fraction, cv = cv, cv.error = cv.error)
+  object<-list(residmat = residmat, mstop = fraction, cv = cv, cv.error = cv.error, family=family)
   if(plot.it) plotCVbst(object,se=se)
   invisible(object)
 }
@@ -437,8 +437,8 @@ coef.bst <- function(object, ...) {
 coefpath.bst <- function(object, ...) {
   if(object$learner != "ls")
     stop("Coefficients only implemented for linear least squares\n")
-
   vars <- colnames(object$x)
+  if(is.null(vars)) stop("colnames of variables missing\n")
   xselect <- object$ensemble
   svars <- vars[tabulate(xselect, nbins = length(vars)) > 0]
   ret <- matrix(0, nrow = object$ctrl$mstop, ncol = length(svars))
@@ -468,5 +468,42 @@ plot.bst <- function(x, type=c("step","norm"), ...) {
   else matplot(x, cp, type = "l", col = col, xlab = "L_1 norm",
                ylab = "Coefficients", ...)
   axis(4, at = cp[nrow(cp),],labels = colnames(cp))
+}
+
+#bst.cvsel <- function(x, y, ...)
+#{
+#  if(!is.data.frame(x))
+#  x <- as.data.frame(x)
+#  fit.cv <- cv.bst(x, y, family="gaussian", plot.it=FALSE, ...)
+#  fit <- bst(x, y, family="gaussian", ctrl = bst_control(mstop=fit.cv$mstop[which.min(fit.cv$cv)]))
+#  sel <- coef(fit)
+#  sel <- which(abs(sel) > 0)
+#  sel
+#}
+
+bst.sel <- function(x, y, q, type=c("firstq", "cv"), ...)
+{
+  type <- match.arg(type)
+  if(is.null(colnames(x)))
+  colnames(x) <- paste("x", 1:dim(x)[2], sep="")
+  if(type=="cv"){ 
+  if(!is.data.frame(x))
+  x <- as.data.frame(x)
+  fit.cv <- cv.bst(x, y, family="gaussian", plot.it=FALSE, ...)
+  fit <- bst(x, y, family="gaussian", ctrl = bst_control(mstop=fit.cv$mstop[which.min(fit.cv$cv)]))
+  sel <- coef(fit)
+  sel <- which(abs(sel) > 0)
+  return(sel)
+  }
+
+  fit <- bst(x, y, family="gaussian", ...)
+  m <- NULL
+  j <- 1
+  mstop <- length(fit$ensemble)
+  while(length(m) <= q && j <= mstop){
+  m <- unique(c(m, fit$ensemble[j]))
+  j <- j + 1
+}
+  m
 }
 

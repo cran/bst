@@ -425,21 +425,25 @@ predict.mhingebst <- function(object, newdata=NULL, newy=NULL, mstop=NULL, type=
     }
     cv <- apply(residmat, 1, mean)
     cv.error <- sqrt(apply(residmat, 1, var)/K)
-    object<-list(residmat=residmat, fraction = fraction, cv = cv, cv.error = cv.error)
+    object<-list(residmat=residmat, mstop = fraction, cv = cv, cv.error = cv.error)
     if(plot.it) plotCVbst(object,se=se)
     invisible(object)
   }
 
 "plotCVbst" <-
   function(cv.bst.object,se=TRUE,ylab=NULL, main=NULL, width=0.02, col="darkgrey", ...){
-    fraction <- cv.bst.object$fraction
+    mstop <- cv.bst.object$mstop
     cv <- cv.bst.object$cv
     cv.error <- cv.bst.object$cv.error
-    if(is.null(ylab))
+    family <- cv.bst.object$family
+    if(is.null(ylab)){
+      if(family=="hinge")
       ylab <- "Cross-validation Misclassification Error"
-    plot(fraction, cv, type = "b", xlab = "Iteration", ylab= ylab, ylim = range(cv, cv + cv.error, cv - cv.error), main=main)
+      else ylab <- "Cross-validation MSE"
+}
+    plot(mstop, cv, type = "b", xlab = "Iteration", ylab= ylab, ylim = range(cv, cv + cv.error, cv - cv.error), main=main)
     if(se)
-      error.bars(fraction, cv + cv.error, cv - cv.error,
+      error.bars(mstop, cv + cv.error, cv - cv.error,
                  width = width, col=col)
                                         #                 width = 1/length(fraction), col=col)
                                         #    detach(cv.bst.object)

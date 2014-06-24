@@ -7,7 +7,7 @@
 }
 \usage{
 cv.bst(x, y, K = 10, cost = 0.5, family = c("hinge", "gaussian"), 
-learner = c("tree", "ls", "sm"), ctrl = bst_control(), 
+learner = c("ls", "sm", "tree"), ctrl = bst_control(), 
 type = c("risk", "misc"), plot.it = TRUE, se = TRUE, ...)
 }
 \arguments{
@@ -34,13 +34,15 @@ Implementing the negative gradient corresponding
 \value{
   object with
   \item{residmat }{ empirical risks in each cross-validation at boosting iterations }
-  \item{fraction}{ abscissa values at which CV curve should be computed. }
-  \item{cv}{The CV curve at each value of fraction}
+  \item{mstop}{ boosting iteration steps at which CV curve should be computed. }
+  \item{cv}{The CV curve at each value of mstop}
   \item{cv.error}{The standard error of the CV curve}
+  \item{family}{ \code{family} = "hinge" for hinge loss and \code{family}="gaussian" for squared error loss.}
   ...
 }
 \seealso{ \code{\link{bst}} }
 \examples{
+\dontrun{
 x <- matrix(rnorm(100*5),ncol=5)
 c <- 2*x[,1]
 p <- exp(c)/(exp(c)+exp(-c))
@@ -49,4 +51,5 @@ y[y != 1] <- -1
 x <- as.data.frame(x)
 cv.bst(x, y, ctrl = bst_control(mstop=50), family = "hinge", learner = "ls")
 cv.bst(x, y, ctrl = bst_control(mstop=50), family = "hinge", learner = "ls", type="misc")
+}
 }

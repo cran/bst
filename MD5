@@ -1,11 +1,11 @@
-1b937a0184633030f31442763f3a65fb *DESCRIPTION
-63d56843021be60867a0e940464f6318 *NAMESPACE
-a96f04873d0f7015f4f3d3e5105292c1 *NEWS
+e77693fb8a3acde6f0bb0b597d3511ee *DESCRIPTION
+1acd2ca620a756383b20ec25e76886b6 *NAMESPACE
+b1a046c6dac514a0146faff8a140ec90 *NEWS
 3e9a5a7e57f9186f93a6e6e3b6e3f231 *R/balanced.folds.R
-9b452882a29cb2009aaf4278f7e308cc *R/bst.R
+90458e04d6ad95d0a77d1637255412cf *R/bst.R
 66d4888817dcee63f10bb8eb17b02596 *R/fpartial.R
 d2c0fbb7632a1f82b22fb4441bc86836 *R/mada.R
-66ddc8a772ad7d068cfc8bc10169f7ab *R/mhingebst.R
+1855bebd545b9e28bc6ee919e2ad6876 *R/mhingebst.R
 be33e20a9125a5a8c8cfa9f2bb7ac01f *R/mhingeova.R
 b1716c64ae0996cf8580a191fbaa5d8c *R/permute.rows.R
 ebe08aea0a33b80966808d899dce0dcc *R/simdata.R
@@ -13,8 +13,9 @@ b8aeab0dc1718bdd8c86a77bc50e2ae9 *cleanup
 264de8d6a195e58f8922ab17c4d7f64a *man/bst-internal.Rd
 5d75cadff006c5be4f462bfe920ecdc1 *man/bst-package.Rd
 17560f7d28eb49c199d40e0a32055017 *man/bst.Rd
+52c34dc00ad1398d49d342825ebaba84 *man/bst.sel.Rd
 f0f5ff22f4f7cd2e9797b22c7ef364b9 *man/bst_control.Rd
-b26b6addceff7fb8f517f4b19550c80e *man/cv.bst.Rd
+d137456be364cb06d73cb3614a636167 *man/cv.bst.Rd
 f0d0c4a73b221dccc635ab61efee546b *man/cv.mada.Rd
 e2808283a4ce49cb8048fd56e2a79b92 *man/cv.mhingebst.Rd
 94536ebe3bafff65e00b19797fa2c0d3 *man/cv.mhingeova.Rd
