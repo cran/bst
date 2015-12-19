@@ -1,0 +1,6 @@
+in mbst_fit function, twin boosting for learner="ls" has the same form as other learners, which should be updated as in bst function
+
+in mbst.R
+ if(length(tmp1)!=0)
+              xselect[[i]] <- as.character(tmp1)  ### this may be changed: xselect is not separate for k-class, thus not right in fpartial.mbst when ensemble is used           
+

@@ -1,10 +1,8 @@
 \name{ex1data}
 \alias{ex1data}
-\title{ Generating Three-class Data}
+\title{ Generating Three-class Data with 50 Predictors}
 \description{
   Randomly generate data for a three-class model. 
-
-  Modified code from http://www.stat.osu.edu/~yklee/software.html.
 }
 
 \usage{

@@ -6,9 +6,10 @@
   for boosting parameter selection.
 }
 \usage{
-cv.bst(x, y, K = 10, cost = 0.5, family = c("hinge", "gaussian"), 
-learner = c("ls", "sm", "tree"), ctrl = bst_control(), 
-type = c("risk", "misc"), plot.it = TRUE, se = TRUE, ...)
+cv.bst(x,y,K=10,cost=0.5,family=c("gaussian", "hinge", "hinge2", "binom", "expo", 
+"poisson", "tgaussianDC", "thingeDC", "tbinomDC", "binomdDC", "texpoDC", "tpoissonDC"),
+learner = c("ls", "sm", "tree"), ctrl = bst_control(), type = c("risk", "misc"),
+ plot.it = TRUE, se = TRUE, n.cores=2, ...)
 }
 \arguments{
   \item{x}{ a data frame containing the variables in the model.}
@@ -28,6 +29,8 @@ Implementing the negative gradient corresponding
   \item{type}{ cross-validation criteria. For \code{family="hinge"}, \code{type="risk"} is hinge risk and \code{type="misc"} is misclassification error. For \code{family="gaussian"}, only empirical risks. }
   \item{plot.it}{ a logical value, to plot the estimated risks if \code{TRUE}. }
   \item{se}{ a logical value, to plot with standard errors. }
+  \item{n.cores}{The number of CPU cores to use. The cross-validation loop
+  will attempt to send different CV folds off to different cores.}
   \item{\dots}{ additional arguments. }
 }
 
@@ -49,7 +52,10 @@ p <- exp(c)/(exp(c)+exp(-c))
 y <- rbinom(100,1,p)
 y[y != 1] <- -1
 x <- as.data.frame(x)
-cv.bst(x, y, ctrl = bst_control(mstop=50), family = "hinge", learner = "ls")
+cv.bst(x, y, ctrl = bst_control(mstop=50), family = "hinge", learner = "ls", type="risk")
 cv.bst(x, y, ctrl = bst_control(mstop=50), family = "hinge", learner = "ls", type="misc")
+dat.m <- bst(x, y, ctrl = bst_control(mstop=50), family = "hinge", learner = "ls")
+dat.m1 <- cv.bst(x, y, ctrl = bst_control(twinboost=TRUE, coefir=coef(dat.m), 
+xselect.init = dat.m$xselect, mstop=50), family = "hinge", learner="ls")
 }
 }

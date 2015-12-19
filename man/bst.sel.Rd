@@ -8,9 +8,9 @@ bst.sel(x, y, q, type=c("firstq", "cv"), ...)
 \arguments{
   \item{x}{Design matrix (without intercept).}
   \item{y}{Continuous response vector for linear regression}
-  \item{q}{Maximum number of predictors that should be selected.}
+  \item{q}{Maximum number of predictors that should be selected if \code{type="firstq"}.}
   \item{type}{if \code{type="firstq"}, return the first \code{q} predictors in the boosting path. if \code{type="cv"}, perform (10-fold) cross-validation and determine the optimal set of parameters}
-  \item{...}{Further arguments to be passed to \code{\link{cv.bst}.}}
+  \item{...}{Further arguments to be passed to \code{\link{bst}}, \code{\link{cv.bst}.}}
 }
 \details{Function to determine the first q predictors in the boosting path, or perform (10-fold) cross-validation and determine the optimal set of parameters. This may be used for p-value calculation. See below.}
 \value{Vector of selected predictors.}

@@ -23,4 +23,9 @@ For a C-class problem (C > 2), each class is separately compared against all oth
 \seealso{\code{\link{cv.mada}} for cross-validated stopping iteration. }
 
 \author{ Zhu Wang }
+\examples{
+data(iris)
+mada(xtr=iris[,-5], ytr=iris[,5])
+}
+
 \keyword{classification}

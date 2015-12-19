@@ -1,21 +1,30 @@
-mhingebst_fit <- function(x, y, Fboost, yv, lq, b, learner, twinboost=FALSE, f.init=NULL, xselect.init=NULL, fixed.depth=TRUE, n.term.node=6, maxdepth=1, nu=0.1, df=4, inde=inde){
+mbst_fit <- function(x, y, family=c("hinge", "hinge2", "thingeDC"), Fboost, fk, s, yv, lq, learner, twinboost=FALSE, f.init=NULL, xselect.init=NULL, fixed.depth=TRUE, n.term.node=6, maxdepth=1, nu=0.1, df=4, inde=inde){
+  family=match.arg(family)
   p <- dim(x)[2]
   k <- length(table(y))
+  if(k < 3) stop("response should be multi-class\n")
+  nob <- 1:k
+  #  if(is.null(b)) b <- k
   ind <- coef <- rep(NA, k)
-  if(learner=="tree")
-    if(maxdepth == 1) xselect <- rep(NA, k)
-    else xselect <- vector("list", k)
+  #  if(learner=="tree")
+  #  if(maxdepth == 1) xselect <- rep(NA, k)
+  #  else xselect <- vector("list", k)
+  xselect <- vector("list", k)   ### changed the last 4 lines 8/22/2015
   mse.w <- coef.w <- matrix(NA,ncol=p, nrow=k)
   cor.w <- matrix(0, ncol=p, nrow=k)
-  nob <- c(1:k)[-b]
-  u <- -lq[,-b]*(sign(Fboost[,-b] - yv[,-b]) + 1)/2
-  u1 <- lq[,b]*(sign(-apply(as.matrix(Fboost[,-b]), 1, sum) - yv[,b]) + 1)/2 ### sum-to-zero constraint
-  
-  u <- u + u1
-  u <- as.matrix(u)
-  tmp <- matrix(NA, nrow=dim(x)[1], ncol=k)
-  tmp[,-b] <- u
-  u <- tmp
+  if(family=="hinge"){### negative gradient, Wang (2012), Methods Info Medicine 
+  u <- -lq*(sign(Fboost - yv) + 1)/2
+}
+  else if(family=="hinge2"){
+  u <- matrix(NA, nrow=dim(x)[1], ncol=k)
+   for(j in nob)
+   u[,j] <- -(y!=j)*(Fboost[,j]+1 > 0)
+}
+  else if(family=="thingeDC"){
+  u <- matrix(NA, nrow=dim(x)[1], ncol=k)
+   for(j in nob)
+   u[,j] <- -(y!=j)*((Fboost[,j]+1 > 0) - (fk[,j] >= s))
+}
   if(!twinboost) xselect.init <- 1:p
   ml.fit <- vector(mode = "list", length = k)
   pred.tr <- matrix(NA, nrow=dim(x)[1], ncol=k)
@@ -159,7 +168,8 @@ mhingebst_fit <- function(x, y, Fboost, yv, lq, b, learner, twinboost=FALSE, f.i
                 ml.fit[[i]] <- prune(treefit, cp=treefit$cptable[,"CP"][which(treefit$cptable[,"nsplit"]==tmp1)])
               }
             }
-            xselect[[i]] <- ind
+	    xselect <- ind
+	    #xselect[[i]] <- ind  ### changed 8/22/2015
           }
           else {
             tmp1 <- NULL
@@ -183,26 +193,38 @@ mhingebst_fit <- function(x, y, Fboost, yv, lq, b, learner, twinboost=FALSE, f.i
             }
             tmp1 <- unique(tmp1)
             if(length(tmp1)!=0)
-              xselect[[i]] <- as.character(tmp1)
-          }
+              xselect[[i]] <- as.character(tmp1)  ### this may be changed: xselect is not separate for k-class, thus not right in fpartial.mbst when ensemble is used           
+      }
         }          
       }
-### update prediction
+      ### zero-to-sum constraint
+      tmp <- matrix(NA, nrow=length(y), ncol=k)
   for(i in nob){
-    if(learner=="sm")
-      Fboost[,i] <- Fboost[,i] + nu * fitted(ml.fit[[i]])
-    else
-      Fboost[,i] <- Fboost[,i] + nu * predict(ml.fit[[i]])
-  }
-  Fboost[,b] <- -apply(as.matrix(Fboost[,-b]), 1, sum) ### sum-to-zero
+      if(learner=="sm")
+      tmp[,i] <- fitted(ml.fit[[i]])
+      else tmp[,i] <- predict(ml.fit[[i]])
+}
+      tmp <- (k-1)/k*(tmp - apply(tmp, 1, mean))
+### update prediction
+  for(i in nob)
+      	    Fboost[,i] <- Fboost[,i] + nu * tmp[,i]
+	    #for(i in nob){
+		    #if(learner=="sm")
+		    #Fboost[,i] <- Fboost[,i] + nu * fitted(ml.fit[[i]])
+		    #else
+		    #Fboost[,i] <- Fboost[,i] + nu * predict(ml.fit[[i]])
+		    #}
+  #Fboost[,b] <- -apply(as.matrix(Fboost[,-b]), 1, sum) ### sum-to-zero
 ### empirical loss
-  risk <- loss.mhingebst(y, Fboost, k)
+  risk <- loss.mbst(y, f=Fboost, fk=fk, s=s, k=k, family=family)
   ensemble <- xselect
-  return(list(b=b, Fboost=Fboost, ens=ml.fit, risk=risk, xselect=xselect, coef=coef))
+  return(list(Fboost=Fboost, ens=ml.fit, risk=risk, xselect=xselect, coef=coef, k=k))
 } 
 
-loss.mhingebst <- function(y, f, k, type=c("total","all"), cost=NULL){
+loss.mbst <- function(y, f, fk, s, k, family=c("hinge", "hinge2", "thinge", "thingeDC"), type=c("total","all"), cost=NULL){
   type <- match.arg(type)
+  family <- match.arg(family)
+  if(family=="hinge"){
   v <- matrix(rep(-1/(k-1), k*k), ncol=k)
   diag(v) <- 1
   yv <- v[y,]
@@ -212,15 +234,36 @@ loss.mhingebst <- function(y, f, k, type=c("total","all"), cost=NULL){
   los <- mapply(function(x) max(x, 0), f-yv)
   los <- matrix(los, byrow=FALSE, ncol=k)
   tmp <- lq * los 
+}
+  else if(family=="hinge2"){
+  tmp <- matrix(NA, nrow=length(y), ncol=k)
+  for(j in 1:k)
+    tmp[,j] <- (y!=j)*(mapply(function(x) max(x, 0), f[,j]+1)) 
+}
+  else if(family=="thinge"){
+  tmp <- matrix(NA, nrow=length(y), ncol=k)
+  for(j in 1:k)
+    tmp[,j] <- (y!=j)*(mapply(function(x) max(x, 0), f[,j]+1)) - 
+               (y!=j)*(mapply(function(x) max(x, 0), f[,j]-s))
+}
+  else if(family=="thingeDC"){#L_DCF
+  tmp <- matrix(NA, nrow=length(y), ncol=k)
+  for(j in 1:k)
+    tmp[,j] <- (y!=j)*(mapply(function(x) max(x, 0), f[,j]+1) - f[,j]*(fk[,j] >= s))
+}
   if(type=="total")
     return(sum(tmp)/length(y))
   else return(tmp/length(y))
 }
 
 #######################################################################################################################################################
-mhingebst <- function(x,y, cost=NULL, family = c("hinge"), ctrl = bst_control(), control.tree=list(fixed.depth=TRUE, n.term.node=6, maxdepth=1), learner=c("ls", "sm", "tree")){
+mbst <- function(x,y, cost=NULL, family = c("hinge", "hinge2", "thingeDC"), ctrl = bst_control(), control.tree=list(fixed.depth=TRUE, n.term.node=6, maxdepth=1), learner=c("ls", "sm", "tree")){
   call <- match.call()
+  family <- match.arg(family)
+  k <- length(table(y))
+  if(k < 3) stop("response should be multi-class\n")
   if(any(y < 1)) stop("y must > 0 \n")
+  if(length(unique(y))!=k) stop("y must be integers from 1 to k class \n")
   family <- match.arg(family)
   learner <- match.arg(learner)
   x <- as.matrix(x)
@@ -229,12 +272,15 @@ mhingebst <- function(x,y, cost=NULL, family = c("hinge"), ctrl = bst_control(),
   mstop <- ctrl$mstop
   nu <- ctrl$nu
   twinboost <- ctrl$twinboost
+  threshold <- ctrl$threshold
   f.init <- ctrl$f.init
   xselect.init <- ctrl$xselect.init
   center <- ctrl$center
   trace <- ctrl$trace
   numsample <- ctrl$numsample
   df <- ctrl$df
+  s <- ctrl$s
+  fk <- ctrl$fk
   if(twinboost && (is.null(f.init) | is.null(xselect.init)))
     stop("Twin boosting requires initial function estimates and variable selected in the first round\n")
   nsample <- dim(x)[1]
@@ -247,19 +293,22 @@ mhingebst <- function(x,y, cost=NULL, family = c("hinge"), ctrl = bst_control(),
     x <- scale(x, meanx, FALSE) # centers x
   }
 ### multi-class coding, cf, Lee et al (2004), JASA, page 69. 
-  k <- length(table(y))
+  yv <- lq <- NULL
+  if(family=="hinge"){
   v <- matrix(rep(-1/(k-1), k*k), ncol=k)
   diag(v) <- 1
   yv <- v[y,]
   QQ <- matrix(rep(1, k*k), ncol=k)
   diag(QQ) <- 0
   lq <- QQ[y, ]
+  }
   oldx <- x; one <- rep(1,length(y))
   ens <- array(list(), c(mstop, k))
   Fboost <- offset <- pred.val <- 0
   Fboost <- matrix(Fboost, nrow=length(y), ncol=k)
   m <- 1
-  baseclass <- risk <- rep(NA,mstop)
+  #baseclass <- 
+  risk <- rep(NA,mstop)
   sse <- minid <- rep(NA,ncol(x))
   coef <- matrix(NA, ncol=k, nrow=mstop)
   xselect <- vector("list", mstop)
@@ -289,8 +338,9 @@ mhingebst <- function(x,y, cost=NULL, family = c("hinge"), ctrl = bst_control(),
   }
   while (m <= mstop){
     tmp <- rep(NA, k); res <- vector("list", k)
-    for(i in 1:k){
-      res[[i]] <- mhingebst_fit(x=x, y=y, Fboost=Fboost, yv=yv, lq=lq, b=i, learner=learner, twinboost=twinboost, f.init=f.init, xselect.init=xselect.init, fixed.depth=fixed.depth, n.term.node=n.term.node, maxdepth=maxdepth, nu=nu, df=df, inde=inde)
+    #tmp1 <- classbase
+    for(i in 1){
+      res[[i]] <- mbst_fit(x=x, y=y, family=family, Fboost=Fboost, fk=fk, s=s, yv=yv, lq=lq, learner=learner, twinboost=twinboost, f.init=f.init, xselect.init=xselect.init, fixed.depth=fixed.depth, n.term.node=n.term.node, maxdepth=maxdepth, nu=nu, df=df, inde=inde)
       tmp[i] <- res[[i]]$risk
     }
     optb <- which.min(tmp)
@@ -300,22 +350,32 @@ mhingebst <- function(x,y, cost=NULL, family = c("hinge"), ctrl = bst_control(),
     risk[m] <- res[[optb]]$risk
     xselect[[m]] <- (res[[optb]]$xselect)
     coef[m,] <- res[[optb]]$coef
-    baseclass[m] <- optb 
+    #baseclass[m] <- optb 
+    if(family=="thingeDC" && threshold=="adaptive")
+    fk <- Fboost  ### testing
     if(trace){
       if(m %% 10==0) cat("m=", m, "  risk = ", risk[m], "\n")
     } 
+       if(m >= 2)
+          if(risk[m] > risk[m-1]){
+		  if(trace) cat(paste("family=", family, ", loss value increases at m=", m, "\n", sep=""))
+		  #if(family!="thingeDC"){
+		  #	  ctrl$mstop <- m
+		  #        m <- mstop
+		  #}
+        }
     m <- m + 1
   }
   ensemble <- xselect
   xselect <- sort(unique(unlist(xselect)))
   xselect <- xselect[!is.na(xselect)]
-  RET <- list(y=y,x=oldx, family = family, learner=learner, k=k, yhat=Fboost, offset=offset, ens=ens, control.tree=control.tree, risk=risk, ctrl = list(center=center, mstop=mstop,nu=nu, df=df), xselect=xselect, coef = coef, ensemble=ensemble, baseclass=baseclass)
+  RET <- list(y=y,x=oldx, family = family, learner=learner, k=k, yhat=Fboost, offset=offset, ens=ens, control.tree=control.tree, risk=risk, ctrl = ctrl, xselect=xselect, coef = coef, ensemble=ensemble)
   RET$call <- call
-  class(RET) <- "mhingebst"
+  class(RET) <- "mbst"
   return(RET)
 }
 
-predict.mhingebst <- function(object, newdata=NULL, newy=NULL, mstop=NULL, type=c("response", "class", "loss", "error"), ...){
+predict.mbst <- function(object, newdata=NULL, newy=NULL, mstop=NULL, type=c("response", "class", "loss", "error"), ...){
   if(is.null(mstop))
     mstop <- object$ctrl$mstop
   else if(mstop > object$ctrl$mstop)
@@ -339,7 +399,8 @@ predict.mhingebst <- function(object, newdata=NULL, newy=NULL, mstop=NULL, type=
   ens <- object$ens
   k <- object$k
   nu <- object$ctrl$nu
-  baseclass <- object$baseclass
+  #baseclass <- object$baseclass
+  family <- object$family
   if(missing(newdata)) p <- dim(x)[1]
   else{ 
     if(!missing(newy))
@@ -351,29 +412,54 @@ predict.mhingebst <- function(object, newdata=NULL, newy=NULL, mstop=NULL, type=
   risk <- rep(NA, mstop)
   lp <- matrix(object$offset, ncol=k, nrow=p)
   if (is.matrix(newdata)) newdata <- as.data.frame(newdata)
+    nob <- 1:k
   for(m in 1:mstop){
-    nob <- c(1:k)[-baseclass[m]]
+    #nob <- c(1:k)[-baseclass[m]]
+    tmp <- matrix(NA, ncol=k, nrow=p)
     if(missing(newdata)){
       for(i in nob)
         if(learner=="tree")
-          lp[,i] <- lp[,i] + nu*predict(ens[[m,i]][[1]])
-        else lp[,i] <- lp[,i] + nu*fitted(ens[[m,i]][[1]])
+          tmp[,i] <- predict(ens[[m,i]][[1]])
+        else tmp[,i] <- lp[,i] + fitted(ens[[m,i]][[1]])
+          tmp <- (k-1)/k*(tmp - apply(tmp, 1, mean))
+          lp <- lp + nu * tmp
+	  #for(i in nob)
+	  #if(learner=="tree")
+	  #lp[,i] <- lp[,i] + nu*predict(ens[[m,i]][[1]])
+	  #else lp[,i] <- lp[,i] + nu*fitted(ens[[m,i]][[1]])
     }
+    #else{
+	    #for(i in nob)
+	    #if(learner=="tree")  
+	    #lp[,i] <- lp[,i] + nu*predict(ens[[m,i]][[1]], newdata = newdata)
+	    #else if(learner=="sm"){
+		    #if(length(unique(x[,object$ensemble[[m]][i]])) < 4)
+		    #{      lp[,i] <- lp[,i] + nu * coef(ens[[m, i]][[1]])* newdata[, object$ensemble[[m]][i]]
+		    #     }         else  
+		    #lp[,i] <- lp[,i] + nu * predict(ens[[m, i]][[1]], newdata[, object$ensemble[[m]][i]])$y
+		    #}        else if(learner=="ls"){
+			    #lp[,i] <- lp[,i] + nu * object$coef[m, i] * newdata[, object$ensemble[[m]][i]]
+			    #}
+			    #}
     else{
       for(i in nob)
         if(learner=="tree")  
-          lp[,i] <- lp[,i] + nu*predict(ens[[m,i]][[1]], newdata = newdata)
+          tmp[,i] <- predict(ens[[m,i]][[1]], newdata = newdata)
         else if(learner=="sm"){
           if(length(unique(x[,object$ensemble[[m]][i]])) < 4)
-            {      lp[,i] <- lp[,i] + nu * coef(ens[[m, i]][[1]])* newdata[, object$ensemble[[m]][i]]
+            {      tmp[,i] <- coef(ens[[m, i]][[1]])* newdata[, object$ensemble[[m]][i]]
                  }         else  
-          lp[,i] <- lp[,i] + nu * predict(ens[[m, i]][[1]], newdata[, object$ensemble[[m]][i]])$y
-        }        else if(learner=="ls")
-          lp[,i] <- lp[,i] + nu * object$coef[m, i] * newdata[, object$ensemble[[m]][i]]
-    }
-    lp[,baseclass[m]] <- - rowSums(as.matrix(lp[,-baseclass[m]])) 
+            tmp[,i] <- predict(ens[[m, i]][[1]], newdata[, object$ensemble[[m]][i]])$y
+        }        else if(learner=="ls"){
+      		tmp[,i] <-  object$coef[m, i] * newdata[, object$ensemble[[m]][i]]
+          }
+        tmp <- (k-1)/k*(tmp - apply(tmp, 1, mean))
+        lp <- lp + nu * tmp
+}
+    #lp[,baseclass[m]] <- - rowSums(as.matrix(lp[,-baseclass[m]])) 
     if(type=="loss"){
-      risk[m] <- loss.mhingebst(ynow, lp, k)
+      risk[m] <- loss.mbst(y=ynow, f=lp, fk=lp, s=object$ctrl$s, k=k, family=family)
+#      risk[m] <- loss.mbst(ynow, lp, k)
     }
     else if(type == "error"){
       tmp <- apply(lp, 1, which.max)
@@ -387,13 +473,8 @@ predict.mhingebst <- function(object, newdata=NULL, newy=NULL, mstop=NULL, type=
   return(drop(lp))
 }
 
-"cv.folds" <-
-  function(n, folds = 10)
-  {
-    split(sample(1:n), rep(1:folds, length = n))
-  }
-"cv.mhingebst" <-
-  function(x, y, balance=FALSE, K = 10, cost = NULL, family = "hinge", learner = c("tree","ls", "sm"), ctrl = bst_control(), type = c("risk", "misc"), plot.it = TRUE, se = TRUE, n.cores=2, ...)
+"cv.mbst" <-
+  function(x, y, balance=FALSE, K = 10, cost = NULL, family = c("hinge", "hinge2", "thingeDC"), learner = c("tree","ls", "sm"), ctrl = bst_control(), type = c("risk", "misc"), plot.it = TRUE, se = TRUE, n.cores=2, ...)
   {
     call <- match.call()
     family <- match.arg(family)
@@ -418,56 +499,26 @@ predict.mhingebst <- function(object, newdata=NULL, newy=NULL, mstop=NULL, type=
       omit <- all.folds[[i]]
       if(ctrl$twinboost)
         ctrl.cv$f.init <- ctrl$f.init[ - omit, ]
-      fit <- mhingebst(x[ - omit,,drop=FALSE  ], y[ - omit], cost = cost, family = family, learner = learner, ctrl = ctrl.cv, ...)
+      fit <- mbst(x[ - omit,,drop=FALSE  ], y[ - omit], cost = cost, family = family, learner = learner, ctrl = ctrl.cv, ...)
       if(type=="risk")
-        fit <- predict.mhingebst(fit, newdata = x[omit,  ,drop=FALSE], newy=y[ omit], mstop = mstop, type="loss")
+        fit <- predict.mbst(fit, newdata = x[omit,  ,drop=FALSE], newy=y[ omit], mstop = mstop, type="loss")
       else if(type=="misc")
-        fit <- predict.mhingebst(fit, newdata = x[omit,  ,drop=FALSE], newy=y[ omit], mstop = mstop, type="error")
+        fit <- predict.mbst(fit, newdata = x[omit,  ,drop=FALSE], newy=y[ omit], mstop = mstop, type="error")
       residmat[, i] <- fit
-      residmat[, i]   ### return values for parallel computing only 12/17/2015
-    }
+   residmat[, i]   ### return values for parallel computing only 12/9/2015
+   }
     cv <- apply(residmat, 1, mean)
     cv.error <- sqrt(apply(residmat, 1, var)/K)
     object<-list(residmat=residmat, mstop = fraction, cv = cv, cv.error = cv.error)
     if(plot.it){
-	         if(type=="risk") ylab <- "Cross-validation loss values"
-		      else  if(type=="misc") ylab <- "Cross-validation misclassification errors"
-		           plotCVbst(object,se=se, ylab=ylab)
-		   }
+     if(type=="risk") ylab <- "Cross-validation loss values"
+     else  if(type=="misc") ylab <- "Cross-validation misclassification errors"
+     plotCVbst(object,se=se, ylab=ylab)
+}
     invisible(object)
   }
 
-"plotCVbst" <-
-  function(cv.bst.object,se=TRUE,ylab=NULL, main=NULL, width=0.02, col="darkgrey", ...){
-    mstop <- cv.bst.object$mstop
-    cv <- cv.bst.object$cv
-    cv.error <- cv.bst.object$cv.error
-    family <- cv.bst.object$family
-    if(is.null(ylab)){
-      ylab <- "Cross-validation loss values"
-}
-    plot(mstop, cv, type = "b", xlab = "Iteration", ylab= ylab, ylim = range(cv, cv + cv.error, cv - cv.error), main=main)
-    if(se)
-      error.bars(mstop, cv + cv.error, cv - cv.error,
-                 width = width, col=col)
-                                        #                 width = 1/length(fraction), col=col)
-                                        #    detach(cv.bst.object)
-
-    invisible()
-  }
-
-"error.bars" <-
-  function(x, upper, lower, width=0.02, col="darkgrey", ...)
-  {
-    xlim <- range(x)
-    barw <- diff(xlim) * width
-    segments(x, upper, x, lower, col=col, ...)
-    segments(x - barw, upper, x + barw, upper, col=col, ...)
-    segments(x - barw, lower, x + barw, lower, col=col, ...)
-    range(upper, lower)
-  }
-
-print.mhingebst <- function(x, ...) {
+print.mbst <- function(x, ...) {
 
   cat("\n")
   cat("\t Models Fitted with Gradient Boosting\n")
@@ -476,7 +527,8 @@ print.mhingebst <- function(x, ...) {
     cat("Call:\n", deparse(x$call), "\n\n", sep = "")
   show(x$family)
   cat("\n")
-  if(!is.null(x$ctrl$twinboost))
+  #if(!is.null(x$ctrl$twinboost))
+  if(x$ctrl$twinboost)
     cat("Twin boosting", "\n")
   cat("Base learner: ", x$learner, "\n")
   cat("Number of boosting iterations: mstop =", x$ctrl$mstop, "\n")
@@ -494,7 +546,7 @@ print.mhingebst <- function(x, ...) {
   invisible(x)
 }
 
-fpartial.mhingebst <- function (object, mstop=NULL, newdata=NULL)
+fpartial.mbst <- function (object, mstop=NULL, newdata=NULL)
 {   
   if(is.null(mstop))
     mstop <- object$ctrl$mstop
@@ -513,7 +565,6 @@ fpartial.mhingebst <- function (object, mstop=NULL, newdata=NULL)
   ens <- object$ens
   k <- object$k
   nu <- object$ctrl$nu
-  baseclass <- object$baseclass
   if(missing(newdata)) p <- dim(x)[1]
   else{
     newdata <- as.matrix(newdata)
@@ -525,7 +576,7 @@ fpartial.mhingebst <- function (object, mstop=NULL, newdata=NULL)
     lp[[i]] <- matrix(0, ncol = NCOL(x), nrow = NROW(x))
   if (is.matrix(newdata)) newdata <- as.data.frame(newdata)
   for(m in 1:mstop){
-    nob <- c(1:k)[-baseclass[m]]
+    nob <- c(1:k)
     if(object$learner=="tree"){
       for(i in nob)
         xselect <- object$ensemble[[m]][i]
@@ -544,20 +595,6 @@ fpartial.mhingebst <- function (object, mstop=NULL, newdata=NULL)
     tmp <- 0
     for(i in nob)
       tmp <- tmp + lp[[i]]
-    lp[[baseclass[m]]] <- -tmp
   }
   lp 
 }
-
-nsel <- function(object, mstop){
-        if(!class(object) %in% c("mhingebst", "mbst", "rmbst"))
-	stop("object is not a correct class\n")
-	np <- rep(NA, mstop)
-	tmp <- NULL
-	for(i in 1:mstop){
-		tmp <- c(tmp, unlist(object$ensemble[[i]]))
-		np[i] <- length(unique(subset(tmp, !is.na(tmp))))
-	}
-	np
-}
-

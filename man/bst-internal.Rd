@@ -9,7 +9,9 @@
 \alias{cvfolds}
 \alias{error.bars}
 \alias{loss.mhingebst}
+\alias{loss.mbst}
 \alias{mhingebst_fit}
+\alias{mbst_fit}
 \alias{balanced.folds}
 \alias{permute.rows}
 \title{Internal Function}

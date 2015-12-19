@@ -1,12 +1,13 @@
-\name{cv.mhingebst}
-\alias{cv.mhingebst}
-\title{ Cross-Validation for Multi-class Hinge Boosting}
+\name{cv.mbst}
+\alias{cv.mbst}
+\title{ Cross-Validation for Multi-class Boosting}
 \description{
-  Cross-validated estimation of the empirical multi-class hinge loss
+  Cross-validated estimation of the empirical multi-class loss
   for boosting parameter selection.
 }
 \usage{
-cv.mhingebst(x, y, balance=FALSE, K = 10, cost = NULL, family = "hinge", 
+cv.mbst(x, y, balance=FALSE, K = 10, cost = NULL, 
+family = c("hinge","hinge2","thingeDC"), 
 learner = c("tree", "ls", "sm"), ctrl = bst_control(), 
 type = c("risk","misc"), plot.it = TRUE, se = TRUE, n.cores=2, ...)
 }
@@ -27,7 +28,7 @@ Implementing the negative gradient corresponding
       \code{tree} regression trees.
 }
   \item{ctrl}{ an object of class \code{\link{bst_control}}.}
-  \item{type}{ for \code{family="hinge"}, \code{type="risk"} is hinge risk.}
+  \item{type}{ for \code{family="hinge"}, \code{type="risk"} is hinge risk. For \code{family="mhingedcf"}, \code{type="risk"}}
   \item{plot.it}{ a logical value, to plot the estimated risks if \code{TRUE}. }
   \item{se}{ a logical value, to plot with standard errors. }
   \item{n.cores}{The number of CPU cores to use. The cross-validation loop
@@ -43,4 +44,4 @@ Implementing the negative gradient corresponding
   \item{cv.error}{The standard error of the CV curve}
   ...
 }
-\seealso{ \code{\link{mhingebst}} }
+\seealso{ \code{\link{mbst}} }

@@ -16,3 +16,34 @@
                 CHANGES in `bst' VERSION 0.3-4 (05-8-2014)
   o  change output name fraction to mstop in cv.bst
 
+                CHANGES in `bst' VERSION 0.3-5 (07-14-2014)
+  o  for non-numeric responses in mada, they are now forced to be numeric
+  o  fixed bugs in mada when xte and yte are missing
+  o  in DESCRIPTION, change Imports: gbm to Depends: gbm, the results can be different for mada
+
+                CHANGES in `bst' VERSION 0.3-6 (12-23-2014)
+  o  intercept estimated
+  o  hingeloss and hingengra were modified
+  o  function rbst added: boosting plus difference of convex algorithm with truncated loss functions
+
+                CHANGES in `bst' VERSION 0.3-7 (03-14-2015)
+  o  add intercept estimate for family=gaussian and center=FALSE
+
+                CHANGES in `bst' VERSION 0.3-8 (04-06-2015)
+  o  add family="expo" in bst function and rfamily="texpo" in rbst function for exponential loss and truncated exponential loss, respectively
+  o  terminate boosting and robust boosting if loss value inreases
+
+                CHANGES in `bst' VERSION 0.3-9 (06-19-2015)
+  o  add robust multi-class boosting rmbst.R
+
+                CHANGES in `bst' VERSION 0.3-10 (08-13-2015)
+  o  change the algorithm with respect to base class in mbst.R
+  o  change bst function with twinboost=TRUE for learner="ls". In the previous versions, bst implemented the General Twin L2Boosting with general weak learner (Alg 1), rathter than Twin L2Boosting with componentwise linear least squares (Alg 2), cf: Buhlmann and Hothorn (2010). However, as Proposition 2 demonstrates, Alg 1 is not equal to Alg2 unless underlying regression model is orthonormal. The change is to match Alg 1. 
+
+                CHANGES in `bst' VERSION 0.3-11 (12-07-2015)
+  o  add parallel computing for cross-validation in cv.bst function
+  o  add twintype argument for learner="ls"
+  o  change argument "type" in bst and related functions to "threshold"
+  o  add vignette file
+  o  in function bst, boosting was terminated early if the fitted loss function value increased. This was changed and boosting only terminates for those loss functions related to truncated loss functions
+  o  add inst/extdata and two vignettes 

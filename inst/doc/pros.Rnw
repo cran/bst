@@ -1,0 +1,228 @@
+\documentclass[a4paper]{article}
+\usepackage[round]{natbib}
+\usepackage{Sweave}
+\usepackage{hyperref}
+%% need no \usepackage{Sweave.sty}
+%\usepackage{natbib}
+%\usepackage{/usr/lib/R/share/texmf/Sweave}
+%\VignetteIndexEntry{Cancer Classification Using Mass Spectrometry-based Proteomics Data}
+%\VignetteDepends{pROC}
+%\SweaveOpts{keep.source=FALSE}
+\hypersetup{%
+  pdftitle = {Cancer Classification Using Mass Spectrometry-based Proteomics Data},
+  pdfsubject = {package vignette},
+  pdfauthor = {Zhu Wang},
+%% change colorlinks to false for pretty printing
+  colorlinks = {true},
+  linkcolor = {blue},
+  citecolor = {blue},
+  urlcolor = {red},
+  hyperindex = {true},
+  linktocpage = {true},
+}
+
+\author{Zhu Wang \\
+  Connecticut Children's Medical Center\\
+  University of Connecticut School of Medicine\\
+  zwang@connecticutchildrens.org}
+\title{Cancer Classification Using Mass Spectrometry-based Proteomics Data}
+\begin{document}
+\date{}
+\maketitle
+
+
+This document presents data analysis similar to \cite{wang2011hingeboost} using R package \textbf{bst}. Serum samples were collected from 77 benign prostate hyperplasia (BPH), 84 early stage prostate cancer, 83 late stage prostate cancer and 82 age-matched healthy men (HM). Peak detection and alignment were based on surface-enhanced laser desorption/ionization (SELDI) mass spectrometry protein profiles. The data have 779 peaks (predictors) for each sample. 
+<<echo=false,results=hide>>=
+options(prompt = "R> ", continue = " ", width = 70, digits =4, useFancyQuotes = FALSE)
+@
+<<echo=TRUE, results=hide>>=
+library("bst")
+library("pROC")
+### benign prostate hyperplasia
+bph <- read.table(file=system.file("extdata", "BPH.txt", package="bst"))
+### early stage prostate cancer, 
+ccd <- read.table(file=system.file("extdata", "CCD.txt", package="bst"))
+### late stage prostate cancer
+cab <- read.table(file=system.file("extdata", "CAB.txt", package="bst"))
+### age-matched healthy men
+hm <- read.table(file=system.file("extdata", "control.txt", package="bst"))
+### mass spectrometry protein
+mz <- read.table(file=system.file("extdata", "prostate_mz.txt", package="bst"))
+@
+\section{Cancer vs Non-cancer}
+Cancer includes early and late stage cancer while non-cancer includes healthy men and benign cancer.
+<<echo=TRUE>>=
+dat <- t(cbind(hm, bph, cab, ccd))
+y <- c(rep(-1, dim(hm)[2] + dim(bph)[2]), rep(1,  dim(cab)[2] + dim(ccd)[2]))
+@
+Peaks with variations only in a very small number of samples are less likely to be linked with
+cancer stages. Thus, we filter out the peaks whose total number of fixed value exceed 95\% across samples.
+<<>>=
+myuniq <- function(x){
+  if(sum(x == 0) <= length(x) * 0.95)
+  return(TRUE)
+  else return(FALSE)
+}
+res <- apply(dat, 2, myuniq)
+dat <- dat[,res]
+rownames(dat) <- NULL
+colnames(dat) <- mz[res,1]
+@
+we randomly select 75\% of the samples as
+training data and the remaining samples as the test data.
+<<>>=
+ntrain <- floor(length(y)*0.75)
+set.seed(13)
+q <- sample(length(y))
+y.tr <- y[q][1:ntrain]; y.te <- y[q][-(1:ntrain)]
+X <- dat[q,]
+x.tr <- X[1:ntrain,];  x.te <- X[-(1:ntrain),] 
+@
+Apply HingeBoost to classify cancer vs non-cancer.
+<<echo=TRUE>>=
+dat.m1 <- bst(x=x.tr, y=y.tr, ctrl = bst_control(mstop=400), family = "hinge2")
+pred <- predict(dat.m1, x.te)
+### misclassification error
+mean(abs(y.te-sign(pred))/2)
+### area under the curve (AUC) of receiver operating characteristic (ROC)
+auc(y.te, pred)
+### number of variables selected
+length(dat.m1$xselect)
+@
+Apply twin HingeBoost to classify cancer vs non-cancer.
+<<echo=TRUE>>=
+dat.m2 <- bst(x=x.tr, y=y.tr, family="hinge2", ctrl = bst_control(mstop=500, 
+twinboost=TRUE, twintype=2, coefir=coef(dat.m1), f.init=predict(dat.m1), 
+xselect.init = dat.m1$xselect))
+pred <- predict(dat.m2, x.te)
+### misclassification error
+mean(abs(y.te-sign(pred))/2)
+### AUC with twin boosting
+auc(y.te, pred)
+### number of variables selected
+length(dat.m2$xselect)
+@
+\section{Cancer vs Healthy Men}
+<<>>=
+dat <- t(cbind(cab, ccd, hm))
+y <- c(rep(1, dim(cab)[2] + dim(ccd)[2]), rep(-1, dim(hm)[2]))
+res <- apply(dat, 2, myuniq)
+dat <- dat[,res]
+rownames(dat) <- NULL
+colnames(dat) <- mz[res,1]
+ntrain <- floor(length(y)*0.75)
+set.seed(13)
+q <- sample(length(y))
+y.tr <- y[q][1:ntrain]; y.te <- y[q][-(1:ntrain)]
+X <- dat[q,]
+x.tr <- X[1:ntrain,];  x.te <- X[-(1:ntrain),] 
+@
+Apply HingeBoost to classify cancer vs healthy men.
+<<echo=TRUE>>=
+dat.m1 <- bst(x=x.tr, y=y.tr, ctrl = bst_control(mstop=400), family = "hinge2")
+pred <- predict(dat.m1, x.te)
+### misclassification error
+mean(abs(y.te-sign(pred))/2)
+### AUC
+auc(y.te, pred)
+### number of variables selected
+length(dat.m1$xselect)
+@
+Apply twin HingeBoost to classify cancer vs healthy men.
+<<echo=TRUE>>=
+dat.m2 <- bst(x=x.tr, y=y.tr, family="hinge2", ctrl = bst_control(mstop=200, 
+twinboost=TRUE, twintype=2, coefir=coef(dat.m1), f.init=predict(dat.m1), 
+xselect.init = dat.m1$xselect))
+pred <- predict(dat.m2, x.te)
+### misclassification error
+mean(abs(y.te-sign(pred))/2)
+### AUC with twin boosting
+auc(y.te, pred)
+### number of variables selected
+length(dat.m2$xselect)
+@
+\section{Cancer vs Benign Cancer}
+<<>>=
+dat <- t(cbind(bph, cab, ccd))
+y <- c(rep(-1, dim(bph)[2]), rep(1,  dim(cab)[2] + dim(ccd)[2]))
+res <- apply(dat, 2, myuniq)
+dat <- dat[,res]
+rownames(dat) <- NULL
+colnames(dat) <- mz[res,1]
+ntrain <- floor(length(y)*0.75)
+set.seed(13)
+q <- sample(length(y))
+y.tr <- y[q][1:ntrain]; y.te <- y[q][-(1:ntrain)]
+X <- dat[q,]
+x.tr <- X[1:ntrain,];  x.te <- X[-(1:ntrain),] 
+@
+Apply HingeBoost to classify cancer vs benign cancer.
+<<echo=TRUE>>=
+dat.m1 <- bst(x=x.tr, y=y.tr, ctrl = bst_control(mstop=400), family = "hinge2")
+pred <- predict(dat.m1, x.te)
+### misclassification error
+mean(abs(y.te-sign(pred))/2)
+### AUC
+auc(y.te, pred)
+### number of variables selected
+length(dat.m1$xselect)
+@
+Apply twin HingeBoost to classify cancer vs benign cancer. 
+<<echo=TRUE>>=
+dat.m2 <- bst(x=x.tr, y=y.tr, family="hinge2", ctrl = bst_control(mstop=500, 
+twinboost=TRUE, twintype=2, coefir=coef(dat.m1), f.init=predict(dat.m1), 
+xselect.init = dat.m1$xselect))
+pred <- predict(dat.m2, x.te)
+### misclassification error
+mean(abs(y.te-sign(pred))/2)
+### AUC with twin boosting
+auc(y.te, pred)
+### number of variables selected
+length(dat.m2$xselect)
+@
+\section{Benign Cancer vs Healthy Men}
+<<>>=
+dat <- t(cbind(bph, hm))
+y <- c(rep(1, dim(bph)[2]), rep(-1, dim(hm)[2]))
+res <- apply(dat, 2, myuniq)
+dat <- dat[,res]
+rownames(dat) <- NULL
+colnames(dat) <- mz[res,1]
+ntrain <- floor(length(y)*0.75)
+set.seed(13)
+q <- sample(length(y))
+y.tr <- y[q][1:ntrain]; y.te <- y[q][-(1:ntrain)]
+X <- dat[q,]
+x.tr <- X[1:ntrain,];  x.te <- X[-(1:ntrain),] 
+@
+Apply HingeBoost to classify benign cancer vs healthy men.
+<<echo=TRUE>>=
+dat.m1 <- bst(x=x.tr, y=y.tr, ctrl = bst_control(mstop=400), family = "hinge2")
+pred <- predict(dat.m1, x.te)
+### misclassification error
+mean(abs(y.te-sign(pred))/2)
+### AUC
+auc(y.te, pred)
+### number of variables selected
+length(dat.m1$xselect)
+@
+Apply twin HingeBoost to classify benign cancer vs healthy men.
+<<echo=TRUE>>=
+dat.m2 <- bst(x=x.tr, y=y.tr, family="hinge2", ctrl = bst_control(mstop=500, 
+twinboost=TRUE, twintype=2, coefir=coef(dat.m1), f.init=predict(dat.m1), 
+xselect.init = dat.m1$xselect))
+pred <- predict(dat.m2, x.te)
+### misclassification error
+mean(abs(y.te-sign(pred))/2)
+### AUC with twin boosting
+auc(y.te, pred)
+### number of variables selected
+length(dat.m2$xselect)
+@
+%<<sessionInfo>>=
+%sessionInfo();
+%@
+\bibliographystyle{plainnat}
+\bibliography{bst}
+\end{document}
+
