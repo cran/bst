@@ -5,14 +5,14 @@
 %% need no \usepackage{Sweave.sty}
 %\usepackage{natbib}
 %\usepackage{/usr/lib/R/share/texmf/Sweave}
-%\VignetteIndexEntry{Classification of Cancer Types Using Gene Expression Data}
+%\VignetteIndexEntry{Classification of Cancer Types Using Gene Expression Data (Short)}
 %\VignetteDepends{}
 %\SweaveOpts{keep.source=FALSE}
 \hypersetup{%
   pdftitle = {Classification of Cancer Types Using Gene Expression Data},
   pdfsubject = {package vignette},
   pdfauthor = {Zhu Wang},
-%% change colorlinks to false for pretty printing
+  %% change colorlinks to false for pretty printing
   colorlinks = {true},
   linkcolor = {blue},
   citecolor = {blue},
@@ -32,10 +32,11 @@
 \maketitle
 
 This document presents data analysis similar to \cite{wang2011multi}  using R package \textbf{bst}. 
+\section{Classification of Small Round Blue Cell Tumors}
 Classifying the small round blue cell tumors
 (SRBCTs) of childhood into four categories is studied using gene expression
 profiles \url{http://research.nhgri.nih.gov/microarray/Supplement/}.
- With 2,308 gene profiles in 63
+With 2,308 gene profiles in 63
 training samples and 20 test samples, perfect
 classification can be reached. We delete information not used in the analysis and set up the right data format. Take the logarithm
 base 10 of the gene levels, then standardize
@@ -52,9 +53,9 @@ dat0 <- read.delim(datafile, header=TRUE, skip=1)[,-(1:2)]
 genename <- read.delim(datafile, header=TRUE, skip=1)[,(1:2)]
 dat0 <- t(dat0)
 dat1 <- dat0[rownames(dat0) %in% 
-c("TEST.9", "TEST.13","TEST.5", "TEST.3", "TEST.11"),]
+  c("TEST.9", "TEST.13","TEST.5", "TEST.3", "TEST.11"),]
 dat2 <- dat0[!rownames(dat0) %in% 
-c("TEST.9", "TEST.13","TEST.5", "TEST.3", "TEST.11"),]
+  c("TEST.9", "TEST.13","TEST.5", "TEST.3", "TEST.11"),]
 dat2 <- rbind(dat2, dat1)
 train <- dat2[1:63,] ### training samples
 test <- dat2[64:83,] ### test samples
@@ -73,12 +74,12 @@ train <- scale(train, meanx, normx)
 ### compute a marginal relevance measure
 tmp <- cbind(train, train.classes)
 a0 <- b0 <- 0
-  for(k in 1:length(table(train.classes))){
-    tmp1 <- subset(tmp, tmp[,2309]==k)
-    xc.bar <- colMeans(tmp1[,-2309])   ###average of gene j across class k 
-    xa.bar <- colMeans(tmp[,-2309])    ###average of gene j across all samples
-    a0 <- a0 + dim(tmp1)[1] * ((xc.bar - xa.bar)^2)
-    b0 <- b0 + colSums((tmp[,-2309] - xc.bar)^2)
+for(k in 1:length(table(train.classes))){
+  tmp1 <- subset(tmp, tmp[,2309]==k)
+  xc.bar <- colMeans(tmp1[,-2309])   ###average of gene j across class k 
+  xa.bar <- colMeans(tmp[,-2309])    ###average of gene j across all samples
+  a0 <- a0 + dim(tmp1)[1] * ((xc.bar - xa.bar)^2)
+  b0 <- b0 + colSums((tmp[,-2309] - xc.bar)^2)
 }
 bw <- a0/b0
 ### select top 300 genes based on the ordered marginal relevance measure
@@ -96,7 +97,7 @@ colnames(test) <- paste("x", 1:dim(test)[2], sep="")
 
 Multi-class HingeBoost with smoothing splines as base learner is applied to the
 data. A 5-fold cross-validation is used for tuning parameter selection.
-<<echo=TRUE, fig=TRUE, results=hide, eval=T>>=
+<<echo=TRUE, fig=TRUE, results=hide, eval=F>>=
 m <- 30
 set.seed(123)
 dat.cvm <- cv.mhingebst(x=train, y=train.classes, balance=TRUE, K=5, 
@@ -105,24 +106,24 @@ ctrl = bst_control(mstop=m), family = "hinge", learner = "sm", type="misc", n.co
 
 Multi-class HingeBoost is applied with boosting iteration 20 based on the cross-validation results.
 Plot the evolution of the misclassification error on the test data versus the iteration counter, as the multi-class HingeBoost algorithm proceeds while working on the test set.
-<<fig=TRUE, eval=T>>=
+<<fig=TRUE, eval=F>>=
 m1 <- 20
 dat.m1 <- mhingebst(x=train, y=train.classes, ctrl = bst_control(mstop=m1),
- family = "hinge", learner = "sm")
+family = "hinge", learner = "sm")
 risk.te1 <- predict(dat.m1, newdata=test, newy=test.classes, type="error")
 plot(risk.te1, type="l", xlab="Iteration", ylab="Test Error")
 @
 
 Plot the evolution of the number of genes selected versus the iteration counter, as the multi-class HingeBoost algorithm proceeds while working on the training set.
-<<fig=TRUE, eval=T>>=
+<<fig=TRUE, eval=F>>=
 plot(nsel(dat.m1, m1), ylab="No. Genes", xlab="Iteration", lty="solid", type="l")
 @
 
 Multi-class twin HingeBoost is applied.
 Plot the evolution of the misclassification error on the test data versus the iteration counter, as the multi-class twin HingeBoost algorithm proceeds while working on the test set.
-<<echo=TRUE, fig=TRUE, results=hide, eval=T>>=
+<<echo=TRUE, fig=TRUE, results=hide, eval=F>>=
 m2 <- 20
-xinit <- unlist(dat.m1$xselect)
+xinit <- unlist(dat.m1$ensemble)
 xinit <- subset(xinit, !is.na(xinit))
 dat.m2 <- mhingebst(x=train, y=train.classes, family = "hinge", learner = "sm",
 ctrl = bst_control(mstop=m2, twinboost=TRUE, f.init=dat.m1$yhat, xselect.init=xinit)) 
@@ -131,11 +132,112 @@ plot(risk.te2, type="l", xlab="Iteration", ylab="Test Error")
 @
 
 Plot the evolution of the number of genes selected versus the iteration counter, as the multi-class twin HingeBoost algorithm proceeds while working on the training set.
-<<fig=TRUE, eval=T>>=
+<<fig=TRUE, eval=F>>=
 plot(nsel(dat.m2, m2), ylab="No. Genes", xlab="Iteration", lty="solid", type="l")
 @
 
+\section{Classification of 14 Cancer Types}
+We use \textbf{bst} to classify patients into 14 cancer types using gene expression levels obtained from \url{http://www.broadinstitute.org/cgi-bin/cancer/datasets.cgi}. The Global Cancer Map (GCM) dataset has 16,063 genes for 144 training and 46 test samples. To proceed the analysis, pre-processing steps are taken before standardization: (a) thresholding (truncated below 20 and above 16,000), (b) filtering (removal of genes with $\max/\min \leq$ 5 and $\max - \min \leq 500$, (c) logarithmic base 10 transformation. With 10,884 genes remaining after filtering, the multi-class HingeBoost and twin HingeBoost with componentwise linear least squares are applied to the data.
+
+<<eval=F>>=
+### training data
+filename <- paste("http://www.broadinstitute.org/mpr/publications/projects/",
+"Global_Cancer_Map/GCM_Training.res", sep="")
+dat0 <- read.delim(filename, sep="\t", header=FALSE, skip=3, quote="")
+tmp <- dat0[,1:290]
+tmp <- tmp[, -seq(4, 290, by=2)]
+tmp <- tmp[, -(1:2)]
+train <- t(tmp)
+filename <- paste("http://www.broadinstitute.org/mpr/publications/projects/",
+"Global_Cancer_Map/GCM_Training.cls", sep="")
+train.classes <- read.table(filename, skip=2)+1
+train.classes <- unlist(train.classes)
+### test data
+filename <- paste("http://www.broadinstitute.org/mpr/publications/projects/",
+"Global_Cancer_Map/GCM_Test.res", sep="")
+dat0 <- read.delim(filename, sep="\t", header=FALSE, skip=3, quote="")
+tmp <- dat0[,1:110]
+tmp <- tmp[, -seq(4, 110, by=2)]
+tmp <- tmp[, -(1:2)]
+test <- t(tmp)[1:46,]
+filename <- paste("http://www.broadinstitute.org/mpr/publications/projects/",
+"Global_Cancer_Map/GCM_Test.cls", sep="")
+test.classes <- read.table(filename, skip=2)+1
+test.classes <- test.classes[test.classes!=15]
+test.classes <- unlist(test.classes)
+### pre-processing data
+train[train < 20] <- 20
+train[train > 16000] <- 16000
+filter <- apply(train, 2,
+function(x) if(max(x)/min(x) > 5 && max(x)-min(x) > 500)
+return(1)
+else 0)
+train <- train[, filter==1]
+train <- log10(train)
+x <- train
+meanx <- colMeans(x)
+one <- rep(1,nrow(x))
+normx <- sqrt(drop(one %*% (x^2)))
+train <- scale(train, meanx, normx)
+tmp <- cbind(train, train.classes)
+tmp <- cbind(train, train.classes)
+nx <- dim(tmp)[2]
+a0 <- b0 <- 0
+for(k in 1:length(table(train.classes))){
+  tmp1 <- subset(tmp, tmp[,nx]==k)
+  xc.bar <- colMeans(tmp1[,-nx])   ###average of gene j across class k 
+  xa.bar <- colMeans(tmp[,-nx])    ### average of gene j across all samples
+  a0 <- a0 + dim(tmp1)[1] * ((xc.bar - xa.bar)^2)
+  b0 <- b0 + colSums((tmp[,-nx] - xc.bar)^2)
+}
+bw <- a0/b0
+npre <- nx - 1  ### use all genes and ignore bw values 
+bw1 <- order(bw, decreasing=TRUE)[1:npre]
+train <- train[,bw1]
+
+test[test < 20] <- 20
+test[test > 16000] <- 16000
+test <- test[, filter==1]
+test <- log10(test)
+test <- scale(test, meanx, normx)[, bw1]
+test <- as.data.frame(test)
+colnames(train) <- paste("x", 1:dim(train)[2], sep="")
+colnames(test) <- paste("x", 1:dim(test)[2], sep="")
 @
+Multi-class HingeBoost is applied for 200 boosting iterations.
+Plot the evolution of the misclassification error on the test data versus the iteration counter, as the multi-class HingeBoost algorithm proceeds while working on the test set.
+<<fig=TRUE, eval=F>>=
+m1 <- m2 <- 200
+dat.m1 <- mhingebst(x=train, y=train.classes, ctrl = bst_control(mstop=m1), 
+family = "hinge", learner = "ls")
+risk.te1 <- predict(dat.m1, newdata=test, newy=test.classes, mstop=m1, type="error")
+plot(risk.te1, type="l", xlab="Iteration", ylab="Test Error", ylim=c(0.15, 0.4))
+@
+
+Plot the evolution of the number of genes selected versus the iteration counter, as the multi-class HingeBoost algorithm proceeds while working on the training set.
+<<fig=TRUE, eval=F>>=
+plot(nsel(dat.m1, m1), ylab="No. Genes", xlab="Iteration", lty="solid", type="l")
+@
+
+Multi-class twin HingeBoost is applied based on the results from the first round HingeBoost for 150 iterations.
+Plot the evolution of the misclassification error on the test data versus the iteration counter, as the multi-class twin HingeBoost algorithm proceeds while working on the test set.
+<<fig=TRUE, eval=F>>=
+fhat1 <- predict(dat.m1, mstop=150, type="response")
+xinit <- unlist(dat.m1$ensemble[1:150])
+xinit <- subset(xinit, !is.na(xinit))
+### How many genes selected with mstop=150
+length(unique(xinit))
+dat.m2 <- mhingebst(x=train, y=train.classes, ctrl = bst_control(mstop=m2, 
+twinboost=TRUE, f.init=fhat1, xselect.init=xinit), family = "hinge", learner = "ls")
+risk.te1 <- predict(dat.m2, newdata=test, newy=test.classes, mstop=m2, type="error")
+plot(risk.te1, type="l", xlab="Iteration", ylab="Test Error", ylim=c(0.15, 0.4))
+@
+
+Plot the evolution of the number of genes selected versus the iteration counter, as the multi-class twin HingeBoost algorithm proceeds while working on the training set.
+<<fig=TRUE, eval=F>>=
+plot(nsel(dat.m2, m2), ylab="No. Genes", xlab="Iteration", lty="solid", type="l")
+@
+
 %<<sessionInfo>>=
 %sessionInfo();
 %@

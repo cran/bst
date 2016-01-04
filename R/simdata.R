@@ -1,7 +1,7 @@
-ex1data <- function(n.data)
+ex1data <- function(n.data, p=50)
 {
-    x <- runif(n.data*50)
-    x <- as.matrix(x, ncol=50)
+    x <- runif(n.data*p)
+    x <- matrix(x, ncol=p)
     p1 <- (0.97 * exp(-3*x[,1]))
     p3 <- exp(-2.5 * (x[,1]-1.2)^2)
     p2 <- (1- p1 - p3)

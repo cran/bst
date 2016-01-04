@@ -7,15 +7,14 @@
 }
 
 \usage{
-rmbst(x, y, cost = 0.5, rfamily = "thinge", threshold = c("adaptive", "standard"), 
-ctrl=bst_control(),control.tree=list(maxdepth = 1),learner=c("ls","sm","tree"),del=1e-10)
+rmbst(x, y, cost = 0.5, rfamily = "thinge", ctrl=bst_control(),
+control.tree=list(maxdepth = 1),learner=c("ls","sm","tree"),del=1e-10)
 }
 \arguments{
   \item{x}{ a data frame containing the variables in the model.}
   \item{y}{ vector of responses. \code{y} must be in \{1, 2, ..., k\}. }
   \item{cost}{ price to pay for false positive, 0 < \code{cost} < 1; price of false negative is 1-\code{cost}.}
   \item{rfamily}{ \code{family} = "thinge" is currently implemented.}
-  \item{threshold}{ if \code{threshold="adaptive"}, the estimated function is updated in every boosting step when invoking \code{rbst} function. Otherwise, no update in boosting steps.}
   \item{ctrl}{ an object of class \code{\link{bst_control}}.}
   \item{control.tree}{ control parameters of rpart. }
   \item{learner}{ a character specifying the component-wise base learner to be used:

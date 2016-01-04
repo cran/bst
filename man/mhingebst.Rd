@@ -58,7 +58,7 @@ type=c("response", "class", "loss", "error"), ...)
 \author{ Zhu Wang }
 \examples{
 \dontrun{
-dat <- ex1data(100)
+dat <- ex1data(100, p=5)
 res <- mhingebst(x=dat$x, y=dat$y)
 }
 }

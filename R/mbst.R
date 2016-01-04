@@ -420,7 +420,7 @@ predict.mbst <- function(object, newdata=NULL, newy=NULL, mstop=NULL, type=c("re
       for(i in nob)
         if(learner=="tree")
           tmp[,i] <- predict(ens[[m,i]][[1]])
-        else tmp[,i] <- lp[,i] + fitted(ens[[m,i]][[1]])
+        else tmp[,i] <- fitted(ens[[m,i]][[1]])
           tmp <- (k-1)/k*(tmp - apply(tmp, 1, mean))
           lp <- lp + nu * tmp
 	  #for(i in nob)

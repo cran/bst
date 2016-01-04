@@ -1,8 +1,7 @@
-rmbst <- function(x,y, cost=0.5, rfamily="thinge", threshold=c("adaptive", "standard"), ctrl = bst_control(), control.tree=list(maxdepth=1), learner=c("ls", "sm", "tree"), del=1e-10){
+rmbst <- function(x,y, cost=0.5, rfamily="thinge", ctrl = bst_control(), control.tree=list(maxdepth=1), learner=c("ls", "sm", "tree"), del=1e-10){
     call <- match.call()
     learner <- match.arg(learner)
     rfamily <- match.arg(rfamily)
-    threshold <- match.arg(threshold)
     s <- ctrl$s
     if(!is.null(s)){
             if(s < 0) stop("s must be >= 0\n")

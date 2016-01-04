@@ -6,16 +6,17 @@
 }
 
 \usage{
-ex1data(n.data)
+ex1data(n.data, p=50)
 }
 \arguments{
   \item{n.data}{ number of data samples.}
+  \item{p}{ number of predictors. }
 }
 \details{
- The data is generated based on Example 1 described in Wang (2011).
+ The data is generated based on Example 1 described in Wang (2012).
 }
 \value{
-  A list with n.data by 50 predictor matrix \code{x}, three-class response \code{y} and conditional probabilities \code{p}.
+  A list with n.data by p predictor matrix \code{x}, three-class response \code{y} and conditional probabilities.
 }
 \references{
 
@@ -26,7 +27,7 @@ ex1data(n.data)
 \author{ Zhu Wang }
 \examples{
 \dontrun{
-dat <- ex1data(200)
+dat <- ex1data(100, p=5)
 mhingebst(x=dat$x, y=dat$y)
 }
 }

@@ -23,7 +23,7 @@
 
                 CHANGES in `bst' VERSION 0.3-6 (12-23-2014)
   o  intercept estimated
-  o  hingeloss and hingengra were modified
+  o  hingeloss and hingengra were modified, they are for family="hinge" since version 0.3-11. Before version 0.3-6, they are for family="hinge2".
   o  function rbst added: boosting plus difference of convex algorithm with truncated loss functions
 
                 CHANGES in `bst' VERSION 0.3-7 (03-14-2015)
@@ -42,8 +42,14 @@
 
                 CHANGES in `bst' VERSION 0.3-11 (12-07-2015)
   o  add parallel computing for cross-validation in cv.bst function
-  o  add twintype argument for learner="ls"
+  o  add twintype argument for learner="ls" and twinboost=TRUE. If twintype=2, it does the same before and excluding version 0.3-10. If twintype=1, it does the same as version 0.3-10 
   o  change argument "type" in bst and related functions to "threshold"
   o  add vignette file
   o  in function bst, boosting was terminated early if the fitted loss function value increased. This was changed and boosting only terminates for those loss functions related to truncated loss functions
   o  add inst/extdata and two vignettes 
+
+                CHANGES in `bst' VERSION 0.3-12 (12-23-2015)
+  o  add a data analysis example to khan.Rnw
+  o  add a new vignette mcl.Rnw
+  o  modify ex1data function
+  o  fix a bug in predict.mbst when newdata=NULL and newy=NULL
