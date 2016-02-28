@@ -53,3 +53,12 @@
   o  add a new vignette mcl.Rnw
   o  modify ex1data function
   o  fix a bug in predict.mbst when newdata=NULL and newy=NULL
+
+                CHANGES in `bst' VERSION 0.3-13 (01-07-2016)
+  o  recall terminating boosting if loss value inreases in bst function, but still terminating for rbst if loss value increases
+  o  check if response is 1/-1 in bst and rbst for (margin based) binary classification problem
+  o  modify cv.bst to be computationally efficient using predict function more properly
+  o  add cv.rbst and cv.rmbst
+  o  change type=c("risk", "misc") to type=c("loss", "error") in cross validation related functions, to be consistent with predict functions
+  o  add cv.rbst
+  o  add index.html to inst/doc

@@ -63,7 +63,7 @@ colnames(test) <- paste("x", 1:dim(test)[2], sep="")
 ## m <- 30
 ## set.seed(123)
 ## dat.cvm <- cv.mhingebst(x=train, y=train.classes, balance=TRUE, K=5, 
-## ctrl = bst_control(mstop=m), family = "hinge", learner = "sm", type="misc", n.cores=2)
+## ctrl = bst_control(mstop=m), family = "hinge", learner = "sm", type="error", n.cores=2)
 
 
 ###################################################

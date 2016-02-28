@@ -8,7 +8,7 @@
 \usage{
 cv.mhingebst(x, y, balance=FALSE, K = 10, cost = NULL, family = "hinge", 
 learner = c("tree", "ls", "sm"), ctrl = bst_control(), 
-type = c("risk","misc"), plot.it = TRUE, se = TRUE, n.cores=2, ...)
+type = c("loss","error"), plot.it = TRUE, main = NULL, se = TRUE, n.cores=2, ...)
 }
 \arguments{
   \item{x}{ a data frame containing the variables in the model.}
@@ -27,8 +27,9 @@ Implementing the negative gradient corresponding
       \code{tree} regression trees.
 }
   \item{ctrl}{ an object of class \code{\link{bst_control}}.}
-  \item{type}{ for \code{family="hinge"}, \code{type="risk"} is hinge risk.}
-  \item{plot.it}{ a logical value, to plot the estimated risks if \code{TRUE}. }
+  \item{type}{ for \code{family="hinge"}, \code{type="loss"} is hinge risk.}
+  \item{plot.it}{ a logical value, to plot the estimated loss or error with cross validation if \code{TRUE}. }
+  \item{main}{ title of plot}
   \item{se}{ a logical value, to plot with standard errors. }
   \item{n.cores}{The number of CPU cores to use. The cross-validation loop
   will attempt to send different CV folds off to different cores.}

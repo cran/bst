@@ -474,14 +474,12 @@ predict.mbst <- function(object, newdata=NULL, newy=NULL, mstop=NULL, type=c("re
 }
 
 "cv.mbst" <-
-  function(x, y, balance=FALSE, K = 10, cost = NULL, family = c("hinge", "hinge2", "thingeDC"), learner = c("tree","ls", "sm"), ctrl = bst_control(), type = c("risk", "misc"), plot.it = TRUE, se = TRUE, n.cores=2, ...)
+  function(x, y, balance=FALSE, K = 10, cost = NULL, family = c("hinge", "hinge2", "thingeDC"), learner = c("tree","ls", "sm"), ctrl = bst_control(), type = c("loss", "error"), plot.it = TRUE, se = TRUE, n.cores=2, ...)
   {
     call <- match.call()
     family <- match.arg(family)
     learner <- match.arg(learner)
     type <- match.arg(type)
-    family <- match.arg(family)
-    learner <- match.arg(learner)
     mstop <- ctrl$mstop
     nu <- ctrl$nu
     df <- ctrl$df
@@ -492,7 +490,6 @@ predict.mbst <- function(object, newdata=NULL, newy=NULL, mstop=NULL, type=c("re
       all.folds <- balanced.folds(y, K)
     else all.folds <- cv.folds(length(y), K)
     fraction <- seq(mstop)
-    residmat <- matrix(NA, mstop, K)
     registerDoParallel(cores=n.cores)
     i <- 1  ###needed to pass R CMD check with parallel code below
     residmat <- foreach(i=seq(K), .combine=cbind) %dopar% {
@@ -500,19 +497,14 @@ predict.mbst <- function(object, newdata=NULL, newy=NULL, mstop=NULL, type=c("re
       if(ctrl$twinboost)
         ctrl.cv$f.init <- ctrl$f.init[ - omit, ]
       fit <- mbst(x[ - omit,,drop=FALSE  ], y[ - omit], cost = cost, family = family, learner = learner, ctrl = ctrl.cv, ...)
-      if(type=="risk")
-        fit <- predict.mbst(fit, newdata = x[omit,  ,drop=FALSE], newy=y[ omit], mstop = mstop, type="loss")
-      else if(type=="misc")
-        fit <- predict.mbst(fit, newdata = x[omit,  ,drop=FALSE], newy=y[ omit], mstop = mstop, type="error")
-      residmat[, i] <- fit
-   residmat[, i]   ### return values for parallel computing only 12/9/2015
+	predict.mbst(fit, newdata = x[omit,  ,drop=FALSE], newy=y[ omit], mstop = mstop, type=type)
    }
     cv <- apply(residmat, 1, mean)
     cv.error <- sqrt(apply(residmat, 1, var)/K)
     object<-list(residmat=residmat, mstop = fraction, cv = cv, cv.error = cv.error)
     if(plot.it){
-     if(type=="risk") ylab <- "Cross-validation loss values"
-     else  if(type=="misc") ylab <- "Cross-validation misclassification errors"
+     if(type=="loss") ylab <- "Cross-validation loss values"
+     else  if(type=="error") ylab <- "Cross-validation misclassification errors"
      plotCVbst(object,se=se, ylab=ylab)
 }
     invisible(object)

@@ -96,11 +96,11 @@ library("bst")
 #  points(err.te3,  type="l", lty="dotted", col="red")
 #  legend("topright", c("mbst_hinge", "mbst_hinge2", "mhingebst"), lty=c("solid", "dashed", "dotted"), col=c("black", "blue", "red"))
 
-## ----echo=FALSE, eval=FALSE-----------------------------------------
+## ----echo=FALSE, eval= FALSE----------------------------------------
 #  ### cross-validation
-#  dat.cvm1 <- cv.mbst(x=dat[,-p], y=dat[,p], balance=TRUE, K=10, ctrl = bst_control(mstop=m), control.tree=list(maxdepth=6), family = "hinge", learner = "tree", type="misc")
-#  dat.cvm2 <- cv.mbst(x=dat[,-p], y=dat[,p], balance=TRUE, K=10, ctrl = bst_control(mstop=m), control.tree=list(maxdepth=6), family = "hinge2", learner = "tree", type="misc")
-#  dat.cvm3 <- cv.mhingebst(x=dat[,-p], y=dat[,p], balance=TRUE, K=10, ctrl = bst_control(mstop=m), control.tree=list(maxdepth=6), family = "hinge", learner = "tree", type="misc")
+#  dat.cvm1 <- cv.mbst(x=dat[,-p], y=dat[,p], balance=TRUE, K=10, ctrl = bst_control(mstop=m), control.tree=list(maxdepth=6), family = "hinge", learner = "tree", type="error")
+#  dat.cvm2 <- cv.mbst(x=dat[,-p], y=dat[,p], balance=TRUE, K=10, ctrl = bst_control(mstop=m), control.tree=list(maxdepth=6), family = "hinge2", learner = "tree", type="error")
+#  dat.cvm3 <- cv.mhingebst(x=dat[,-p], y=dat[,p], balance=TRUE, K=10, ctrl = bst_control(mstop=m), control.tree=list(maxdepth=6), family = "hinge", learner = "tree", type="error")
 #  plot(dat.cvm1$cv, type="l", xlab="Iteration", ylab="Test Error")
 #  points(dat.cvm2$cv,  type="l", lty="dashed", col="blue")
 #  points(dat.cvm3$cv,  type="l", lty="dotted", col="red")

@@ -224,132 +224,13 @@ bst_control <- function(mstop = 50, nu = 0.1, twinboost = FALSE, twintype=1, thr
 
 #######################################################################################################################################################
 
-rbstpath <- function(x, y, rmstop=seq(40, 400, by=20), ctrl=bst_control(), del=1e-16, ...){
-    fit <- vector("list", length(rmstop))
-    for(jk in 1:length(rmstop)){
-        if(jk==1) fk <- NULL
-        else fk <- fit[[jk-1]]$yhat
-        ctrl$mstop <- rmstop[jk]
-        ctrl$fk <- fk
-        fit[[jk]] <- rbst(x, y, ctrl = ctrl, del=del, ...)
-    }
-    fit
-}
-
-rbst <- function(x,y, cost=0.5, rfamily=c("tgaussian", "thuber", "thinge", "tbinom", "binomd", "texpo", "tpoisson"), ctrl = bst_control(), control.tree=list(maxdepth=1), learner=c("ls", "sm", "tree"), del=1e-10){
-    call <- match.call()
-    learner <- match.arg(learner)
-    rfamily <- match.arg(rfamily)
-    s <- ctrl$s
-    sh <- ctrl$sh
-    q <- ctrl$q
-    qh <- ctrl$qh
-    if(is.null(ctrl$s) && rfamily=="tgaussian")
-        sa <- TRUE  ### adaptive s
-    else sa <- FALSE
-                                        #if(is.null(s) && is.null(q)) stop("s or q must be provided\n")
-    if(!is.null(q)){
-        if(q < 0 || q > 1)
-            stop("proportion of outliers must between 0 and 1\n")
-        if(rfamily=="thuber"){
-            if(is.null(qh)) stop("qh must be provided\n")
-            if(q <= qh) stop("q should be larger than qh\n")
-        }
-    }
-    else if(!is.null(s)){
-        if(rfamily=="tbinom")
-            if(s > 0) stop("s must be non-negative for rf='tbinom'\n")
-        if(rfamily=="binomd")
-            if(s <= 0) stop("s must be positive for rf='binomd'\n")
-        if(rfamily=="thuber"){
-            if(is.null(sh)) stop("sh must be provided\n")
-            if(s <= sh) stop("s should be larger than sh\n")
-        }
-    }
-    fk <- ctrl$fk
-    if(is.null(s)){
-        if(rfamily=="tgaussian" || rfamily=="thuber"){
-            stop("how to find s is not implemented\n")
-        }
-        else
-            s <- switch(rfamily,       
-                        "thinge"= -1,
-                        "tbinom"= -log(3),
-                        "binomd"= log(4),
-                        "texpo"= log(0.5),
-                        "tpoisson"= 5*mean(y))
-    }
-    famtype <- switch(rfamily,
-                      "tgaussian"="tgaussianDC",
-                      "thuber"="thuberDC",
-                      "thinge"="thingeDC",
-                      "tbinom"="tbinomDC",
-                      "binomd"="binomdDC",
-                      "texpo"="texpoDC",
-                      "tpoisson"="tpoissonDC",
-                      )
-    ctrl$s <- s
-    ctrl$sh <- sh
-    iter <- ctrl$iter
-    trace <- ctrl$trace
-    if(trace) cat("\ngenerate initial values\n") 
-    ly <- ifelse(y==1, 1-cost, cost)
-### initiate values are important, best with nonrobust intercept models
-### may need to upgrade for other nonrobust methods
-    if(is.null(fk)){
-        bsttype <- switch(rfamily,
-                                        # "tgaussian"="gaussian",
-                          "tgaussian"="huber",
-                          "thuber"="huber",
-                          "thinge"="hinge",
-                          "tbinom"="binom",
-                          "binomd"="binom",
-                          "texpo"="expo",
-                          "tpoisson"="poisson",
-                          )
-        RET <- bst(x, y, cost=cost, family=bsttype, ctrl = bst_control(mstop=1), control.tree=control.tree, learner=learner)
-    }
-    else {
-        RET <- NULL
-        RET$yhat <- fk
-    }
-    los <- loss(y, f=RET$yhat, cost, family = rfamily, s=ctrl$s, sh=ctrl$sh, fk=fk)
-    d1 <- 10 
-    k <- 1
-    if(trace) {
-        cat("\nrobust boosting ...\n")
-        cat("\ninitial loss", mean(los), "\n")
-    }
-    los <- rep(NA, iter)
-    while(d1 > del && k <= iter){
-        ctrl$fk <- RET$yhat
-        if(sa){
-### fk is the previous fitted f
-            if(is.null(ctrl$fk)) fk <- 0
-            ctrl$s <- quantile(gaussloss(y, ctrl$fk), 0.5)   ### adaptive s,  test program
-        }
-        RET <- bst(x, y, cost=cost, family=famtype, ctrl = ctrl, control.tree=control.tree, learner=learner)
-        los[k] <- mean(loss(y, f=RET$yhat, cost, family = rfamily, s=ctrl$s, sh=ctrl$sh, fk=NULL))
-        d1 <- sum((RET$yhat - ctrl$fk)^2)/sum(ctrl$fk^2)
-        if(trace) cat("\niteration", k, ": relative change of fk", d1, ", robust loss value", los[k], "\n") 
-	if(k > 1){
-            if(los[k] > los[k-1])
-                k <- iter
-        }
-        k <- k + 1
-    }
-    RET$x <- x
-    RET$y <- y
-    RET$call <- call
-    RET$cost <- cost
-    RET$rfamily <- RET$family <- rfamily
-    RET
-}
-
 bst <- function(x,y, cost=0.5, family = c("gaussian", "hinge", "hinge2", "binom", "expo", "poisson", "tgaussianDC", "thingeDC", "tbinomDC", "binomdDC", "texpoDC", "tpoissonDC", "huber", "thuberDC"), 
                 ctrl = bst_control(), control.tree=list(maxdepth=1), learner=c("ls", "sm", "tree")){
     call <- match.call()
     family <- match.arg(family)
+    if(family %in% c("hinge", "hinge2", "binom", "expo", "thingeDC", "binomDC", "binomdDC", "texpoDC"))
+        if(!all(names(table(y)) %in% c(1, -1)))
+            stop("response variable must be 1/-1 for family ", family, "\n")
     threshold <- ctrl$threshold
     learner <- match.arg(learner)
     if(learner == "tree" && is.null(colnames(x)))
@@ -450,7 +331,7 @@ bst <- function(x,y, cost=0.5, family = c("gaussian", "hinge", "hinge2", "binom"
 ### Moore-Penrose inverse (which is a scalar in this case) for the raw
 ### and standardized input variables
         weights <- rep(1, dim(x)[1]) ###weights to be changed
-        xw <- t(x * weights)
+	xw <- t(x * weights)
         xtx <- colSums(x^2 * weights)
         sxtx <- sqrt(xtx)
 ### MPinv <- (1 / xtx) * xw
@@ -481,21 +362,21 @@ bst <- function(x,y, cost=0.5, family = c("gaussian", "hinge", "hinge2", "binom"
                 coef1 <- mu[xselect0] / sxtx[xselect0]
                 ind <- xselect0
             }
-    else if(twintype==2){
-        for (j in xselect.init){
-            coef0[j] <- 1/sum(x[,j]^2)*sum(x[,j] * u)
-            pred.tr <- x[,j] * coef0[j] 
-            ss <- sum(pred.tr^2)
-            if(twinboost){
-                cor.w[j] <- cov(f.init,pred.tr)/sqrt(sum(pred.tr^2))
-                mse.w[j] <- cor.w[j]^2 * (2*sum(u*pred.tr) - ss)
+            else if(twintype==2){
+                for (j in xselect.init){
+                    coef0[j] <- 1/sum(x[,j]^2)*sum(x[,j] * u)
+                    pred.tr <- x[,j] * coef0[j] 
+                    ss <- sum(pred.tr^2)
+                    if(twinboost){
+                        cor.w[j] <- cov(f.init,pred.tr)/sqrt(sum(pred.tr^2))
+                        mse.w[j] <- cor.w[j]^2 * (2*sum(u*pred.tr) - ss)
+                    }
+                    else mse.w[j] <- 2*sum(u*pred.tr) - ss
+                }
+                ind <- which.max(mse.w)
+                coef1 <- coef0[ind]
             }
-            else mse.w[j] <- 2*sum(u*pred.tr) - ss
-        }
-        ind <- which.max(mse.w)
-        coef1 <- coef0[ind]
-    }
-	    ml.fit <- lm(u~x[, ind]-1)
+            ml.fit <- lm(u~x[, ind]-1)
 	    coef[m] <- coef1 ### note: coef is not the final reported coefficient, see coef.bst
  	    xselect[m] <- ind
 	    if(ctrl$intercept){
@@ -540,10 +421,10 @@ bst <- function(x,y, cost=0.5, family = c("gaussian", "hinge", "hinge2", "binom"
                             data.tr <- as.data.frame(cbind(u,x[,xselect.new[j]])); 
                             colnames(data.tr) <- c("u",colnames(x)[xselect.new[j]])
                         }
-                            else{
-                                data.tr <- as.data.frame(cbind(u,x[,inde[j,]])); 
-                                colnames(data.tr) <- c("u",colnames(x)[inde[j,]])
-                            }
+                        else{
+                            data.tr <- as.data.frame(cbind(u,x[,inde[j,]])); 
+                            colnames(data.tr) <- c("u",colnames(x)[inde[j,]])
+                        }
 ###Twin L2 Boosting with genral weak learner, Buhlmann, page 8, step 4, in Twin boosting, improved feature selection and prediction
 ### cf weakboostadapt.rpart in twin.R by Buhlmann, received from Horton in 2009
                         tree.twin[[j]] <- rpart(u~.,data=data.tr,method="anova",control=cntrl)
@@ -580,12 +461,12 @@ bst <- function(x,y, cost=0.5, family = c("gaussian", "hinge", "hinge2", "binom"
         } 
         ens[[m]] <- ml.fit
         if(m >= 2 && risk[m] > risk[m-1]){
-                if(family %in% c("tgaussianDC", "thingeDC", "tbinomDC", "binomdDC", "texpoDC", "tpoissonDC", "thuberDC") && threshold=="standard"){ ###need to check
-                    cat("loss value increases at m=", m, "\n") 
-                ctrl$mstop <- m
-                m <- mstop
+            if(family %in% c("tgaussianDC", "thingeDC", "tbinomDC", "binomdDC", "texpoDC", "tpoissonDC", "thuberDC") && threshold=="standard"){ ###need to check
+                if(trace) cat("loss value increases at m=", m, "\n") 
+                                        #ctrl$mstop <- m
+                                        #m <- mstop
             }
-    }
+        }
         m <- m + 1
     }
     ensemble <- xselect
@@ -606,6 +487,10 @@ predict.bst <- function(object, newdata=NULL, newy=NULL, mstop=NULL, type=c("res
     if (!is.null(newdata)) {
         if (is.null(colnames(newdata)))
             stop("missing column names for ", sQuote("newdata"))
+    }
+    if (!is.null(newdata) && !is.null(newy)){
+	    if(dim(newdata)[1] != length(newy))
+            stop("newdata and newy should have the same number of samples\n")
     }
     type <- match.arg(type)
     one <- rep(1,nrow(object$x))
@@ -646,9 +531,9 @@ predict.bst <- function(object, newdata=NULL, newy=NULL, mstop=NULL, type=c("res
                 lp <- lp + nu*predict(ens[[m]], newdata = newdata)
         else if(object$learner=="sm")
             lp <- lp + nu * predict(object$ens[[m]], newdata[, object$ensemble[m]])$y
-            else if(object$learner=="ls"){
-                lp <- lp + nu * object$coef[m] * newdata[, object$ensemble[m]]
-            }
+        else if(object$learner=="ls"){
+            lp <- lp + nu * object$coef[m] * newdata[, object$ensemble[m]]
+        }
         if(type=="all.res")
             res[,m] <- lp
         else if(type=="loss"){
@@ -671,76 +556,45 @@ predict.bst <- function(object, newdata=NULL, newy=NULL, mstop=NULL, type=c("res
 
 "cv.bst" <-
     function(x, y, K = 10, cost = 0.5, family = c("gaussian", "hinge", "hinge2", "binom", "expo", "poisson", "tgaussianDC", "thingeDC", "tbinomDC", "binomdDC", "texpoDC", "tpoissonDC"), 
-             learner = c("ls", "sm", "tree"), ctrl = bst_control(), type = c("risk", "misc"), plot.it = TRUE, se = TRUE, n.cores=2, ...)
-    {
-        call <- match.call()
-        family <- match.arg(family)
-        type <- match.arg(type)
-        learner <- match.arg(learner)
-        family <- match.arg(family)
-        mstop <- ctrl$mstop
-        nu <- ctrl$nu
-        df <- ctrl$df
-        twinboost <- ctrl$twinboost
-        twintype <- ctrl$twintype
-        trace <- ctrl$trace
-        s <- ctrl$s
-        sh <- ctrl$sh
-        fk <- ctrl$fk
-        ctrl.cv <- ctrl
-        if(family == "gaussian" && type =="misc") stop("Only risk option is implemented for gaussion family\n")
-        all.folds <- cv.folds(length(y), K)
-        fraction <- seq(from = 5, to = mstop, by=5)
-                                        #fraction <- seq(from = 1, to = mstop, by=5)
-        m1 <- 1:length(fraction)
-        residmat <- matrix(0, length(fraction), K)
-        registerDoParallel(cores=n.cores)
-        i <- 1  ###needed to pass R CMD check with parallel code below
-	residmat <- foreach(i=seq(K), .combine=cbind) %dopar% {
-            omit <- all.folds[[i]]
-            if(ctrl$twinboost){
-                ctrl.cv$f.init <- ctrl$f.init[ - omit]
-            }
-            fit <- bst(x[ - omit,,drop=FALSE  ], y[ - omit], cost = cost, family = family, learner = learner, ctrl = ctrl.cv, ...)
-            fit <- sapply(fraction, function(m) predict(fit, newdata = x[omit,  ,drop=FALSE], mstop = m))
-            if(length(omit)==1)fit<-matrix(fit,nrow=1)
-### hinge risk or misclassification error
-            if(family %in% c("hinge", "hinge2")){
-                if(type == "risk"){
-                    tmp <- sapply(m1, function(m) loss(y[omit], fit[,m], cost = cost, family = family, s=s, sh=sh, fk=fk))
-                    residmat[, i] <- apply(tmp, 2, mean)
-                }
-            else{
-                tmp <- sapply(m1, function(m) {
-                    tmp1 <- 0
-                    for (ss in 1:length(omit)){
-                        if(y[omit[ss]] == 1 && fit[ss,m] <= 0)
-			tmp1 <- tmp1 + (1-cost)
-                        else if(y[omit[ss]] == -1 && fit[ss,m] > 0)
-			    tmp1 <- tmp1 + cost
-                    }
-                    tmp1 <- tmp1/length(omit)
-                }
-                )
-                residmat[, i] <- 2*tmp  ### multiply 2 to compute misclassification rate if cost=0.5
-            }
-            }
-            else{
-                tmp <- sapply(m1, function(m) loss(y[omit], fit[,m], cost = cost, family = family, s=s, sh=sh, fk=fk))
-                residmat[, i] <- apply(tmp, 2, mean)
-            }
-            residmat[, i]   ### return values for parallel computing only 12/9/2015
-	}
-	cv <- apply(residmat, 1, mean)
-        cv.error <- sqrt(apply(residmat, 1, var)/K)
-        object<-list(residmat = residmat, mstop = fraction, cv = cv, cv.error = cv.error, family=family)
-        if(plot.it){
-	         if(type=="risk") ylab <- "Cross-validation loss values"
-		      else  if(type=="misc") ylab <- "Cross-validation misclassification errors"
-		           plotCVbst(object,se=se, ylab=ylab)
-		   }
-        invisible(object)
+             learner = c("ls", "sm", "tree"), ctrl = bst_control(), type = c("loss", "error"), plot.it = TRUE, main=NULL, se = TRUE, n.cores=2, ...)
+{
+    call <- match.call()
+    family <- match.arg(family)
+    type <- match.arg(type)
+    learner <- match.arg(learner)
+    mstop <- ctrl$mstop
+    nu <- ctrl$nu
+    df <- ctrl$df
+    twinboost <- ctrl$twinboost
+    twintype <- ctrl$twintype
+    trace <- ctrl$trace
+    s <- ctrl$s
+    sh <- ctrl$sh
+    fk <- ctrl$fk
+    ctrl.cv <- ctrl
+    if(family %in% c("gaussian", "poisson") && type =="error") stop("misclassification is Not applicable for family ", family, "\n")
+    all.folds <- cv.folds(length(y), K)
+    fraction <- 1:mstop
+    registerDoParallel(cores=n.cores)
+    i <- 1  ###needed to pass R CMD check with parallel code below
+        residmat <- foreach(i=seq(K), .combine=cbind) %dopar% {
+  	  omit <- all.folds[[i]]
+        if(ctrl$twinboost){
+            ctrl.cv$f.init <- ctrl$f.init[ - omit]
+        }
+        fit <- bst(x[ - omit,,drop=FALSE  ], y[ - omit], cost = cost, family = family, learner = learner, ctrl = ctrl.cv, ...)
+	predict(fit, newdata = x[omit,  ,drop=FALSE], newy=y[omit], mstop = mstop, type=type)
+}
+    cv <- apply(residmat, 1, mean)
+    cv.error <- sqrt(apply(residmat, 1, var)/K)
+    object<-list(residmat = residmat, mstop = fraction, cv = cv, cv.error = cv.error, family=family)
+    if(plot.it){
+        if(type=="loss") ylab <- "Cross-validation loss values"
+        else  if(type=="error") ylab <- "Cross-validation misclassification errors"
+        plotCVbst(object,se=se, ylab=ylab, main=main)
     }
+    invisible(object)
+}
 
 print.bst <- function(x, ...) {
 

@@ -393,7 +393,7 @@ predict.mhingebst <- function(object, newdata=NULL, newy=NULL, mstop=NULL, type=
         split(sample(1:n), rep(1:folds, length = n))
     }
 "cv.mhingebst" <-
-    function(x, y, balance=FALSE, K = 10, cost = NULL, family = "hinge", learner = c("tree","ls", "sm"), ctrl = bst_control(), type = c("risk", "misc"), plot.it = TRUE, se = TRUE, n.cores=2, ...)
+    function(x, y, balance=FALSE, K = 10, cost = NULL, family = "hinge", learner = c("tree","ls", "sm"), ctrl = bst_control(), type = c("loss", "error"), plot.it = TRUE, main = NULL, se = TRUE, n.cores=2, ...)
     {
         call <- match.call()
         family <- match.arg(family)
@@ -411,7 +411,6 @@ predict.mhingebst <- function(object, newdata=NULL, newy=NULL, mstop=NULL, type=
             all.folds <- balanced.folds(y, K)
         else all.folds <- cv.folds(length(y), K)
         fraction <- seq(mstop)
-        residmat <- matrix(NA, mstop, K)
         registerDoParallel(cores=n.cores)
         i <- 1  ###needed to pass R CMD check with parallel code below
         residmat <- foreach(i=seq(K), .combine=cbind) %dopar% {
@@ -419,20 +418,15 @@ predict.mhingebst <- function(object, newdata=NULL, newy=NULL, mstop=NULL, type=
             if(ctrl$twinboost)
                 ctrl.cv$f.init <- ctrl$f.init[ - omit, ]
             fit <- mhingebst(x[ - omit,,drop=FALSE  ], y[ - omit], cost = cost, family = family, learner = learner, ctrl = ctrl.cv, ...)
-            if(type=="risk")
-                fit <- predict.mhingebst(fit, newdata = x[omit,  ,drop=FALSE], newy=y[ omit], mstop = mstop, type="loss")
-            else if(type=="misc")
-                fit <- predict.mhingebst(fit, newdata = x[omit,  ,drop=FALSE], newy=y[ omit], mstop = mstop, type="error")
-            residmat[, i] <- fit
-            residmat[, i]   ### return values for parallel computing only 12/17/2015
+            predict.mhingebst(fit, newdata = x[omit,  ,drop=FALSE], newy=y[ omit], mstop = mstop, type=type)
         }
         cv <- apply(residmat, 1, mean)
         cv.error <- sqrt(apply(residmat, 1, var)/K)
         object<-list(residmat=residmat, mstop = fraction, cv = cv, cv.error = cv.error)
         if(plot.it){
-            if(type=="risk") ylab <- "Cross-validation loss values"
-            else  if(type=="misc") ylab <- "Cross-validation misclassification errors"
-            plotCVbst(object,se=se, ylab=ylab)
+            if(type=="loss") ylab <- "Cross-validation loss values"
+            else  if(type=="error") ylab <- "Cross-validation misclassification errors"
+            plotCVbst(object,se=se, ylab=ylab, main=main)
         }
         invisible(object)
     }
@@ -550,8 +544,8 @@ fpartial.mhingebst <- function (object, mstop=NULL, newdata=NULL)
 }
 
 nsel <- function(object, mstop){
-    if(!class(object) %in% c("mhingebst", "mbst", "rmbst"))
-	stop("object is not a correct class\n")
+	#if(!class(object) %in% c("mhingebst", "mbst", "rmbst"))
+	#stop("object is not a correct class\n")
     np <- rep(NA, mstop)
     tmp <- NULL
     for(i in 1:mstop){
