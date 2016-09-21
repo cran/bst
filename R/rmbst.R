@@ -1,4 +1,4 @@
-rmbst <- function(x,y, cost=0.5, rfamily="thinge", ctrl = bst_control(), control.tree=list(maxdepth=1), learner=c("ls", "sm", "tree"), del=1e-10){
+rmbst <- function(x,y, cost=0.5, rfamily=c("thinge", "closs"), ctrl = bst_control(), control.tree=list(maxdepth=1), learner=c("ls", "sm", "tree"), del=1e-10){
     call <- match.call()
     learner <- match.arg(learner)
     rfamily <- match.arg(rfamily)
@@ -7,14 +7,12 @@ rmbst <- function(x,y, cost=0.5, rfamily="thinge", ctrl = bst_control(), control
         if(s < 0) stop("s must be >= 0\n")
     }
     fk <- ctrl$fk
-    if(is.null(s)){
-        s <- switch(rfamily,       
-                    "thinge"= 1)
-    }
+    if(is.null(s)) stop("s must be provided \n")
+    ### convex loss used in majorization
     famtype <- switch(rfamily,
-                      "thinge"="thingeDC"
+                      "thinge"="thingeDC",
+                      "closs"="clossMM"
                       )
-    ctrl$s <- s
     iter <- ctrl$iter
     trace <- ctrl$trace
     if(trace) cat("\ngenerate initial values\n") 
@@ -22,9 +20,10 @@ rmbst <- function(x,y, cost=0.5, rfamily="thinge", ctrl = bst_control(), control
 ### may need to upgrade for other nonrobust methods
     if(is.null(fk)){
         bsttype <- switch(rfamily,
-                          "thinge"="hinge2"
+                          "thinge"="hinge2",
+                          "closs"="closs"
 		          )
-        RET <- mbst(x, y, cost=cost, family=bsttype, ctrl = bst_control(mstop=1), control.tree=control.tree, learner=learner)
+        RET <- mbst(x, y, cost=cost, family=bsttype, ctrl = bst_control(mstop=1, s=s), control.tree=control.tree, learner=learner)
     }
     else {
         RET <- NULL
@@ -41,15 +40,22 @@ rmbst <- function(x,y, cost=0.5, rfamily="thinge", ctrl = bst_control(), control
     while(d1 > del && k <= iter){
         ctrl$fk <- RET$yhat
         RET <- mbst(x, y, cost=cost, family=famtype, ctrl = ctrl, control.tree=control.tree, learner=learner)
-	los[k] <- mean(loss.mbst(y, f=RET$yhat, fk=NULL, s=ctrl$s, k=RET$k, family = rfamily, cost=cost))
-                                        #difference of convex function is linearly majorized, thus tmp1 - los[k] >= 0. cf Wang (2015)
+	los[k] <- loss.mbst(y, f=RET$yhat, fk=NULL, s=ctrl$s, k=RET$k, family = rfamily, cost=cost)
+                                 #original nonconvex loss is majorized, thus tmp1 - los[k] >= 0. cf Wang (2015)
 	if(trace){
             tmp <- matrix(NA, nrow=length(y), ncol=RET$k)
             f <- RET$yhat; fk <- ctrl$fk
-            for(j in 1:RET$k)
+	    tmp1 <- loss.mbst(y, f, fk, s, k=RET$k, family=famtype)
+	    if(rfamily=="thinge"){
+              ### compute loss of family=thingeDC, check if matching with function in loss.mbst
+       		    for(j in 1:RET$k)
                 tmp[,j] <- (y!=j)*(mapply(function(x) max(x, 0), f[,j]+1) - mapply(function(x) max(x, 0), fk[,j]-s)- (f[,j]-fk[,j])*(fk[,j] >= s))
-            tmp1 <- sum(tmp)/length(y)
-            cat("difference of convex function is linearly majorized, returning a non-negative number", tmp1-los[k], "\n")
+     		tmp1 <- sum(tmp)/length(y)
+            cat("check if the difference of loss value between thingeDC and thinge is non-negative as expected: ", tmp1-los[k], "\n")
+            }
+	    else if(rfamily=="closs"){
+	    cat("check if the difference of loss value between", famtype, " and ", bsttype, " is non-negative as expected: ", tmp1-los[k], "\n")
+	    }
         }
 	d1 <- sum((RET$yhat - ctrl$fk)^2)/sum(ctrl$fk^2)
         if(trace) cat("\niteration", k, ": relative change of fk", d1, ", robust loss value", los[k], "\n") 
@@ -68,7 +74,7 @@ rmbst <- function(x,y, cost=0.5, rfamily="thinge", ctrl = bst_control(), control
 }
 
 "cv.rmbst" <-
-    function(x, y, balance=FALSE, K = 10, cost = NULL, rfamily = "thinge", learner = c("tree","ls", "sm"), ctrl = bst_control(), type = c("loss", "error"), plot.it = TRUE, main = NULL, se = TRUE, n.cores=2, ...)
+    function(x, y, balance=FALSE, K = 10, cost = NULL, rfamily = c("thinge", "closs"), learner = c("tree","ls", "sm"), ctrl = bst_control(), type = c("loss", "error"), plot.it = TRUE, main = NULL, se = TRUE, n.cores=2, ...)
 {
     call <- match.call()
     rfamily <- match.arg(rfamily)

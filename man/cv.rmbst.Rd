@@ -6,9 +6,9 @@
   for boosting parameter selection.
 }
 \usage{
-cv.rmbst(x, y, balance=FALSE, K = 10, cost = NULL, 
-rfamily = "thinge", learner = c("tree", "ls", "sm"), ctrl = bst_control(), 
-type = c("loss","error"), plot.it = TRUE, main = NULL, se = TRUE, n.cores=2, ...)
+cv.rmbst(x, y, balance=FALSE, K = 10, cost = NULL, rfamily = c("thinge", "closs"), 
+learner = c("tree", "ls", "sm"), ctrl = bst_control(), type = c("loss","error"), 
+plot.it = TRUE, main = NULL, se = TRUE, n.cores=2, ...)
 }
 \arguments{
   \item{x}{ a data frame containing the variables in the model.}

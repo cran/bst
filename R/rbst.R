@@ -10,11 +10,11 @@ rbstpath <- function(x, y, rmstop=seq(40, 400, by=20), ctrl=bst_control(), del=1
     fit
 }
 
-rbst <- function(x,y, cost=0.5, rfamily=c("tgaussian", "thuber", "thinge", "tbinom", "binomd", "texpo", "tpoisson"), ctrl = bst_control(), control.tree=list(maxdepth=1), learner=c("ls", "sm", "tree"), del=1e-10){
+rbst <- function(x,y, cost=0.5, rfamily=c("tgaussian", "thuber", "thinge", "tbinom", "binomd", "texpo", "tpoisson", "clossR", "closs", "gloss", "qloss"), ctrl = bst_control(), control.tree=list(maxdepth=1), learner=c("ls", "sm", "tree"), del=1e-10){
     call <- match.call()
     learner <- match.arg(learner)
     rfamily <- match.arg(rfamily)
-    if(rfamily %in% c("thinge", "tbinom", "binomd", "texpo"))
+    if(rfamily %in% c("thinge", "tbinom", "binomd", "texpo", "closs", "gloss", "qloss"))
         if(!all(names(table(y)) %in% c(1, -1)))
             stop("response variable must be 1/-1 for family ", rfamily, "\n")
     s <- ctrl$s
@@ -54,7 +54,12 @@ rbst <- function(x,y, cost=0.5, rfamily=c("tgaussian", "thuber", "thinge", "tbin
                         "tbinom"= -log(3),
                         "binomd"= log(4),
                         "texpo"= log(0.5),
-                        "tpoisson"= 5*mean(y))
+                        "tpoisson"= 5*mean(y),
+                        "closs"=1,
+                        "gloss"=1,
+                        "qloss"=2,
+                        "clossR"=1
+                        )
     }
     famtype <- switch(rfamily,
                       "tgaussian"="tgaussianDC",
@@ -64,6 +69,10 @@ rbst <- function(x,y, cost=0.5, rfamily=c("tgaussian", "thuber", "thinge", "tbin
                       "binomd"="binomdDC",
                       "texpo"="texpoDC",
                       "tpoisson"="tpoissonDC",
+                      "closs"="clossMM",
+                      "gloss"="glossMM",
+                      "qloss"="qlossMM",
+                      "clossR"="clossRMM"
                       )
     ctrl$s <- s
     ctrl$sh <- sh
@@ -83,8 +92,12 @@ rbst <- function(x,y, cost=0.5, rfamily=c("tgaussian", "thuber", "thinge", "tbin
                           "binomd"="binom",
                           "texpo"="expo",
                           "tpoisson"="poisson",
+                          "closs"="closs",
+                          "gloss"="gloss",
+                          "qloss"="qloss",
+                          "clossR"="clossR"
                           )
-        RET <- bst(x, y, cost=cost, family=bsttype, ctrl = bst_control(mstop=1), control.tree=control.tree, learner=learner)
+        RET <- bst(x, y, cost=cost, family=bsttype, ctrl = bst_control(mstop=1, s=s), control.tree=control.tree, learner=learner)### changed 3/16/16
     }
     else {
         RET <- NULL
@@ -106,14 +119,23 @@ rbst <- function(x,y, cost=0.5, rfamily=c("tgaussian", "thuber", "thinge", "tbin
             ctrl$s <- quantile(gaussloss(y, ctrl$fk), 0.5)   ### adaptive s,  test program
         }
         RET <- bst(x, y, cost=cost, family=famtype, ctrl = ctrl, control.tree=control.tree, learner=learner)
-        los[k] <- mean(loss(y, f=RET$yhat, cost, family = rfamily, s=ctrl$s, sh=ctrl$sh, fk=NULL))
-        d1 <- sum((RET$yhat - ctrl$fk)^2)/sum(ctrl$fk^2)
+	los[k] <- mean(loss(y, f=RET$yhat, cost, family = rfamily, s=ctrl$s, sh=ctrl$sh, fk=NULL))
+	if(trace){
+            ellu1 <- mean(loss(y, f=ctrl$fk, fk=ctrl$fk, family=famtype, s=ctrl$s)) ### loss values \ell(u) at the kth iteration
+                                        #ellu2 <- RET$risk ### loss values \ell(u) at the k+1-th iteration
+            ellu2 <- mean(loss(y, f=RET$yhat, cost, family = famtype, s=ctrl$s, fk=ctrl$fk))
+            cat("\niteration", k, ": los[k] <= ellu2", los[k]-ellu2)
+            cat("\niteration", k, ": ellu2 <= ellu1", ellu2-ellu1)
+        }
+	d1 <- sum((RET$yhat - ctrl$fk)^2)/sum(ctrl$fk^2)
         if(trace) cat("\niteration", k, ": relative change of fk", d1, ", robust loss value", los[k], "\n") 
 	if(k > 1){
-            if(los[k] > los[k-1])
-                k <- iter
-        }
+		   if(los[k] > los[k-1]){
+		            k <- iter
+		    }
+		 }
         k <- k + 1
+	if(trace) cat("d1=", d1, ", k=", k, ", d1 > del && k <= iter: ", (d1 > del && k <= iter), "\n")
     }
     RET$x <- x
     RET$y <- y
@@ -124,7 +146,7 @@ rbst <- function(x,y, cost=0.5, rfamily=c("tgaussian", "thuber", "thinge", "tbin
 }
 
 "cv.rbst" <-
-    function(x, y, K = 10, cost = 0.5, rfamily = c("tgaussian", "thuber", "thinge", "tbinom", "binomd", "texpo", "tpoisson"),
+    function(x, y, K = 10, cost = 0.5, rfamily = c("tgaussian", "thuber", "thinge", "tbinom", "binomd", "texpo", "tpoisson", "clossR", "closs", "gloss", "qloss"),
              learner = c("ls", "sm", "tree"), ctrl = bst_control(), type = c("loss", "error"), plot.it = TRUE, main = NULL, se = TRUE, n.cores=2, ...)
 {
     call <- match.call()

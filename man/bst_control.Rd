@@ -7,10 +7,10 @@
 }
 
 \usage{
-bst_control(mstop = 50, nu = 0.1, twinboost = FALSE, twintype=1, 
-threshold=c("standard", "adaptive"), f.init = NULL, coefir = NULL,
-xselect.init = NULL, center = FALSE, trace = FALSE, numsample = 50, df = 4, 
-s = NULL, sh = NULL, q = NULL, qh = NULL, fk = NULL, iter = 10, intercept = FALSE)
+bst_control(mstop = 50, nu = 0.1, twinboost = FALSE, twintype=1, threshold=c("standard", 
+"adaptive"), f.init = NULL, coefir = NULL, xselect.init = NULL, center = FALSE, 
+trace = FALSE, numsample = 50, df = 4, s = NULL, sh = NULL, q = NULL, qh = NULL, 
+fk = NULL, iter = 10, intercept = FALSE, trun=FALSE)
 }
 \arguments{
   \item{mstop}{ an integer giving the number of boosting iterations. }
@@ -27,11 +27,12 @@ s = NULL, sh = NULL, q = NULL, qh = NULL, fk = NULL, iter = 10, intercept = FALS
   \item{numsample}{ number of random sample variable selected in the first round of twin boosting. This is potentially useful in the future implementation. }
   \item{df}{ degree of freedom used in smoothing splines. }
   \item{s,q}{ truncation parameter \code{s} or frequency \code{q} of outliers for robust regression and classification. If \code{s} is missing but \code{q} is available, \code{s} may be computed as the \code{1-q} quantile of robust loss values using conventional software.}
-  \item{sh, qh}{ threshold value or frequency \code{qh} of outliers for Huber regressionn \code{family="huber"} or \code{family="rhuberDC"}.
+  \item{sh, qh}{ threshold value or frequency \code{qh} of outliers for Huber regression \code{family="huber"} or \code{family="rhuberDC"}.
 For \code{family="huber"}, if \code{sh} is not provided, \code{sh} is then updated adaptively with the median of \code{y-yhat} where \code{yhat} is the estimated \code{y} in the last boosting iteration. For \code{family="rhuberDC"}, if \code{sh} is missing but \code{qh} is available, \code{sh} may be computed as the \code{1-qh} quantile of robust loss values using conventional software.}
   \item{fk}{ used for robust classification. A function estimate used in difference of convex algorithm}
   \item{iter}{number of iteration in difference of convex algorithm}
   \item{intercept}{ logical value, if TRUE, estimation of intercept with linear predictor model}
+  \item{trun}{logical value, if TRUE, predicted value in each boosting iteration is truncated at -1, 1, for \code{family="closs"} in \code{bst} and \code{rfamily="closs"} in \code{rbst}}
 }
 
 \details{

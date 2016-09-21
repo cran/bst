@@ -1,15 +1,15 @@
 \name{rbst}
 \alias{rbst}
-\title{ Robust Boosting for Truncated Loss Functions}
+\title{ Robust Boosting for Robust Loss Functions}
 \description{
-  Gradient boosting for optimizing robust loss functions with componentwise
+  MM (majorization/minimization) algorithm based gradient boosting for optimizing nonconvex robust loss functions with componentwise
   linear, smoothing splines, tree models as base learners.
 }
 
 \usage{
 rbst(x, y, cost = 0.5, rfamily = c("tgaussian", "thuber","thinge", "tbinom", "binomd", 
-"texpo", "tpoisson"), ctrl=bst_control(), control.tree=list(maxdepth = 1), 
-learner=c("ls","sm","tree"),del=1e-10)
+"texpo", "tpoisson", "clossR", "closs", "gloss", "qloss"), ctrl=bst_control(), 
+control.tree=list(maxdepth = 1), learner=c("ls","sm","tree"),del=1e-10)
 }
 \arguments{
   \item{x}{ a data frame containing the variables in the model.}
@@ -26,7 +26,7 @@ learner=c("ls","sm","tree"),del=1e-10)
   \item{del}{convergency critera}
 }
 \details{
- A linear or nonlinear classifier is fitted using robust boosting algorithm. 
+An MM algorithm operates by creating a convex surrogate function that majorizes the nonconvex objective function. When the surrogate function is minimized with gradient boosting algorithm, the desired objective function is decreased. The MM algorithm contains difference of convex (DC) algorithm for \code{rfamily=c("tgaussian", "thuber","thinge", "tbinom", "binomd", "texpo", "tpoisson")} and quadratic majorization boosting algorithm (QMBA) for \code{rfamily=c("clossR", "closs", "gloss", "qloss")}. 
 }
 \value{
   An object of class \code{bst} with \code{\link{print}}, \code{\link{coef}},

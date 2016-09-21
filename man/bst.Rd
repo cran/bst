@@ -7,14 +7,15 @@
 \alias{fpartial.bst}
 \title{ Boosting for Classification and Regression}
 \description{
-  Gradient boosting for optimizing hinge or squared error loss functions with componentwise
+  Gradient boosting for optimizing loss functions with componentwise
   linear, smoothing splines, tree models as base learners.
 }
 
 \usage{
-bst(x, y, cost = 0.5, family = c("gaussian", "hinge", "hinge2", "binom", "expo",
+bst(x, y, cost = 0.5, family = c("gaussian", "hinge", "hinge2", "binom", "expo", 
 "poisson", "tgaussianDC", "thingeDC", "tbinomDC", "binomdDC", "texpoDC", "tpoissonDC",
- "huber", "thuberDC"), ctrl = bst_control(), control.tree = list(maxdepth = 1), 
+ "huber", "thuberDC", "clossR", "clossRMM", "closs", "gloss", "qloss", "clossMM",
+"glossMM", "qlossMM", "lar"), ctrl = bst_control(), control.tree = list(maxdepth = 1), 
 learner = c("ls", "sm", "tree"))
 \method{print}{bst}(x, ...)
 \method{predict}{bst}(object, newdata=NULL, newy=NULL, mstop=NULL, 

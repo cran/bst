@@ -7,9 +7,10 @@
 }
 \usage{
 cv.bst(x,y,K=10,cost=0.5,family=c("gaussian", "hinge", "hinge2", "binom", "expo", 
-"poisson", "tgaussianDC", "thingeDC", "tbinomDC", "binomdDC", "texpoDC", "tpoissonDC"),
-learner = c("ls", "sm", "tree"), ctrl = bst_control(), type = c("loss", "error"),
- plot.it = TRUE, main = NULL, se = TRUE, n.cores=2, ...)
+"poisson", "tgaussianDC", "thingeDC", "tbinomDC", "binomdDC", "texpoDC", "tpoissonDC", 
+"clossR", "closs", "gloss", "qloss", "lar"), learner = c("ls", "sm", "tree"), 
+ctrl = bst_control(), type = c("loss", "error"), 
+plot.it = TRUE, main = NULL, se = TRUE, n.cores=2, ...)
 }
 \arguments{
   \item{x}{ a data frame containing the variables in the model.}

@@ -1,8 +1,11 @@
-loss <- function(y, f, cost = 0.5, family = c("gaussian", "hinge", "hinge2", "binom", "expo", "poisson", "thingeDC", "tgaussianDC", "tpoissonDC", "tbinomDC", "binomdDC", "texpoDC", "thinge", "tgaussian", "tbinom", "binomd", "texpo", "tpoisson", "huber", "thuber", "thuberDC"), s=-1, sh=NULL, fk=NULL){
+loss <- function(y, f, cost = 0.5, family = c("gaussian", "hinge", "hinge2", "binom", "expo", "poisson", "thingeDC", "tgaussianDC", "tpoissonDC", "tbinomDC", "binomdDC", "texpoDC", "thinge", "tgaussian", "tbinom", "binomd", "texpo", "tpoisson", "huber", "thuber", "thuberDC", "clossR", "clossRMM", "closs", "clossMM", "gloss", "glossMM", "qloss", "qlossMM", "lar"), s=-1, sh=NULL, fk=NULL){
     family <- match.arg(family)
     if(family!="gaussian") ly <- ifelse(y==1, 1-cost, cost)
     if(family == "hinge"){
         hingeloss(y, f, a = cost)
+    }
+    else if(family == "lar"){ ###least absolute regression
+        abs(y-f)
     }
     else if(family == "hinge2"){
         hingeloss2(y, f, a = cost)
@@ -102,9 +105,86 @@ loss <- function(y, f, cost = 0.5, family = c("gaussian", "hinge", "hinge2", "bi
         b <- ifelse((a <- abs(y - f)) <= sh, a^2/2, sh*(a - sh/2))
         pmin(b, s)
     }
-
+    else if(family %in% c("closs", "qloss")){
+        if(s <=0) stop("s must be positive for family ", family, "\n")
+        nonconvexloss(family, u=y*f, s)
+    }
+    else if(family=="clossR"){
+        if(s <=0) stop("s must be positive for family ", family, "\n")
+        nonconvexloss(family, u=y-f, s)
+    }
+    else if(family=="gloss"){
+        if(s <=1) stop("s must be > 1 for family ", family, "\n")
+        nonconvexloss(family, u=y*f, s)
+    }
+    else if(family %in% c("clossRMM")){
+        u <- y-f
+        z <- y-fk
+        lz <- nonconvexloss("clossR", z, s) + gradient("clossR", z, s)*(u - z) + 0.5*bfunc("clossR", s)*(u - z)^2
+        lz
+    }
+    else if(family %in% c("clossMM", "glossMM", "qlossMM")){
+        famtype <- switch(family,
+                          "clossMM"="closs",
+                          "glossMM"="gloss",
+                          "qlossMM"="qloss"
+                          )
+        u <- y*f
+        z <- y*fk
+### compute quadratic upper bound
+        lz <- nonconvexloss(famtype, z, s) + gradient(famtype, z, s)*(u - z) + 0.5*bfunc(famtype, s)*(u - z)^2
+        return(lz)
+    }
 }
 
+### compute gradient w.r.t. u=margin y*f or u=y-f for nonconvex loss
+gradient <- function(family=c("clossR", "closs", "gloss", "qloss"), u, s){
+    family <- match.arg(family)
+    if(family=="clossR"){
+        u/(s^2*exp(u^2/(2*s^2)))
+    }
+    else if(family=="closs"){
+        cval <- 1/(1 - exp(-1/(2*s^2)))
+        cval*(u-1)/(s^2*exp((1-u)^2/(2*s^2)))
+    }
+    else if(family=="gloss")
+        -2^s*s*exp(u)*(exp(u)+1)^(-s-1)
+    else if(family=="qloss")
+        -sqrt(2)/(sqrt(pi)*s)*exp(-u^2/(2*s^2))
+}
+
+### compute B for MM algorithm
+bfunc <- function(family=c("clossR", "closs", "gloss", "qloss"), s){
+    family <- match.arg(family)
+    if(family=="clossR") 1/s^2
+    else if(family=="closs"){
+        cval <- 1/(1 - exp(-1/(2*s^2)))
+        cval/s^2
+    }
+    else if(family=="gloss"){
+###eu = exp(u)
+        eu <- sqrt(5*s^2+6*s+1)/(2*s^2) +3/(2*s)+1/(2*s^2)
+        s*2^s*eu*(eu+1)^(-s-2)*(s*eu-1)
+    }
+    else if(family=="qloss")
+        sqrt(2/pi)/s^2*exp(-0.5)
+}
+
+###clossR for C-loss regression with u= f - y
+###closs  for C-loss classification with y={1, 1} and u=y * f
+nonconvexloss <- function(family=c("clossR", "closs", "gloss", "qloss"), u, s){
+    family <- match.arg(family)
+    if(family=="clossR")
+        1-1/exp(u^2/(2*s^2))
+    else if(family=="closs"){
+        cval <- 1/(1 - exp(-1/(2*s^2)))
+        cval*(1-1/exp((1-u)^2/(2*s^2)))
+    }
+    else if(family=="gloss")
+        2^s/(exp(u)+1)^s 
+    else if(family=="qloss")
+	2*(1-pnorm(u/s, 0, 1))
+}
 gaussloss <- function(y, f) 1/2*(y - f)^2
 
 hingeloss <- function(y, f, w=1, a=0.5){
@@ -137,12 +217,14 @@ hingeloss2 <- function(y, f, w=1, a=0.5){
 }
 
 
-ngradient <- function(y, f, cost = 0.5, family = c("gaussian", "hinge", "hinge2", "binom", "expo", "poisson", "thingeDC", "tgaussianDC", "tpoissonDC", "tbinomDC", "texpoDC", "binomdDC", "huber", "thuberDC"), s=-1, sh=NULL, fk=NULL){
+ngradient <- function(y, f, cost = 0.5, family = c("gaussian", "hinge", "hinge2", "binom", "expo", "poisson", "thingeDC", "tgaussianDC", "tpoissonDC", "tbinomDC", "texpoDC", "binomdDC", "huber", "thuberDC","clossR", "clossRMM", "closs", "gloss", "qloss", "clossMM", "glossMM", "qlossMM", "lar"), s=-1, sh=NULL, fk=NULL){
     family <- match.arg(family)
     if(family!="gaussian") ly <- ifelse(y==1, 1-cost, cost)
     if(family == "hinge"){
         hingengra(y, f, a = cost)
     }
+    else if(family == "lar")
+	sign(y - f)
     else if(family == "hinge2")
         hingengra2(y, f, a = cost)
     else if(family == "thingeDC"){
@@ -185,6 +267,20 @@ ngradient <- function(y, f, cost = 0.5, family = c("gaussian", "hinge", "hinge2"
         f2 <- ifelse(abs(y - fk) < sh, y - fk, sh * sign(y - fk))
         f1 - f2*(loss(y, fk, family="huber", sh=sh) > s)
     }
+    else if(family %in% c("clossR"))
+        gradient("clossR", y-f, s) ### this is negative gradient w.r.t. f
+    else if(family %in% c("clossRMM"))
+	gradient("clossR", y-fk, s) - bfunc("clossR", s)*(f- fk)
+    else if(family %in% c("closs", "gloss", "qloss"))
+        -y*gradient(family, y*f, s)
+    else if(family %in% c("clossMM", "glossMM", "qlossMM")){
+        famtype <- switch(family,
+                          "clossMM"="closs",
+                          "glossMM"="gloss",
+                          "qlossMM"="qloss"
+                          )
+        -y*gradient(famtype, y*fk, s) - bfunc(famtype, s)*(f- fk)
+    }
 }
 ###negative gradient w.r.t f
 gaussngra <- function(y, f) y - f
@@ -213,22 +309,23 @@ hingengra2 <- function(y, f, a=0.5){
     res
 }
 
-bst_control <- function(mstop = 50, nu = 0.1, twinboost = FALSE, twintype=1, threshold=c("standard", "adaptive"), f.init = NULL, coefir = NULL, xselect.init = NULL, center = FALSE, trace = FALSE, numsample = 50, df = 4, s=NULL, sh=NULL, q=NULL, qh=NULL, fk=NULL, iter=10, intercept=FALSE) {
+bst_control <- function(mstop = 50, nu = 0.1, twinboost = FALSE, twintype=1, threshold=c("standard", "adaptive"), f.init = NULL, coefir = NULL, xselect.init = NULL, center = FALSE, trace = FALSE, numsample = 50, df = 4, s=NULL, sh=NULL, q=NULL, qh=NULL, fk=NULL, iter=10, intercept=FALSE, trun=FALSE) {
+    if(length(s) > 1) stop("s must be one value if any\n")
     threshold <- match.arg(threshold)
     RET <- list(mstop = mstop, nu = nu, 
                 center = center, df = df, threshold=threshold,
-                trace = trace, twinboost = twinboost, twintype=twintype, f.init = f.init, coefir = coefir, xselect.init = xselect.init, s=s, sh=sh, q=q, qh=qh, fk=fk, iter=iter, intercept=intercept)
+                trace = trace, twinboost = twinboost, twintype=twintype, f.init = f.init, coefir = coefir, xselect.init = xselect.init, s=s, sh=sh, q=q, qh=qh, fk=fk, iter=iter, intercept=intercept, trun=trun)
     class(RET) <- c("bst_control")
     RET
 }
 
 #######################################################################################################################################################
 
-bst <- function(x,y, cost=0.5, family = c("gaussian", "hinge", "hinge2", "binom", "expo", "poisson", "tgaussianDC", "thingeDC", "tbinomDC", "binomdDC", "texpoDC", "tpoissonDC", "huber", "thuberDC"), 
+bst <- function(x,y, cost=0.5, family = c("gaussian", "hinge", "hinge2", "binom", "expo", "poisson", "tgaussianDC", "thingeDC", "tbinomDC", "binomdDC", "texpoDC", "tpoissonDC", "huber", "thuberDC", "clossR", "clossRMM", "closs", "gloss", "qloss", "clossMM", "glossMM", "qlossMM", "lar"), 
                 ctrl = bst_control(), control.tree=list(maxdepth=1), learner=c("ls", "sm", "tree")){
     call <- match.call()
-    family <- match.arg(family)
-    if(family %in% c("hinge", "hinge2", "binom", "expo", "thingeDC", "binomDC", "binomdDC", "texpoDC"))
+    family <- match.arg(family) ### why partial matching here?
+    if(family %in% c("hinge", "hinge2", "binom", "expo", "thingeDC", "binomDC", "binomdDC", "texpoDC", "closs", "gloss", "qloss", "clossMM", "glossMM", "qlossMM"))
         if(!all(names(table(y)) %in% c(1, -1)))
             stop("response variable must be 1/-1 for family ", family, "\n")
     threshold <- ctrl$threshold
@@ -247,15 +344,22 @@ bst <- function(x,y, cost=0.5, family = c("gaussian", "hinge", "hinge2", "binom"
     numsample <- ctrl$numsample
     df <- ctrl$df
     s <- ctrl$s
+    trun <- ctrl$trun
+    if(!family %in% c("closs", "gloss", "qloss", "clossMM", "glossMM", "qlossMM"))
+        if(trun)
+            stop("trun should be FALSE for family ", family, "\n")
+    if(family %in% c("thingeDC", "tbinomDC", "binomdDC", "texpoDC", "tpoissonDC", "huberDC", "closs", "gloss", "qloss", "clossMM", "glossMM", "qlossMM"))
+        if(is.null(s))
+            stop("s must be numeric for family ", family, "\n")
     sh <- ctrl$sh
     fk <- ctrl$fk
     maxdepth <- control.tree$maxdepth
     if(twinboost){
         if(is.null(xselect.init))
             stop("Twin boosting requires initial variable selected in the first round\n")
-	else if(learner %in% c("sm", "tree") && is.null(f.init))
+        else if(learner %in% c("sm", "tree") && is.null(f.init))
             stop("Twin boosting requires initial function estimates in the first round\n")
-	else if(learner=="ls" && is.null(coefir))
+        else if(learner=="ls" && is.null(coefir))
             stop("Twin boosting requires initial coefficients estimates in the first round\n")
     }
     nsample <- dim(x)[1]
@@ -331,12 +435,12 @@ bst <- function(x,y, cost=0.5, family = c("gaussian", "hinge", "hinge2", "binom"
 ### Moore-Penrose inverse (which is a scalar in this case) for the raw
 ### and standardized input variables
         weights <- rep(1, dim(x)[1]) ###weights to be changed
-	xw <- t(x * weights)
+        xw <- t(x * weights)
         xtx <- colSums(x^2 * weights)
         sxtx <- sqrt(xtx)
 ### MPinv <- (1 / xtx) * xw
         MPinvS <- (1 / sxtx) * xw
-        if(twinboost) MPinvS1 <- abs(coefir) * MPinvS
+	if(twinboost) MPinvS1 <- abs(coefir) * MPinvS
                                         #see Bulhmann twin boosting paper equation (5)
         if (all(is.na(MPinvS)))
             warning("cannot compute column-wise inverses of design matrix")
@@ -354,7 +458,7 @@ bst <- function(x,y, cost=0.5, family = c("gaussian", "hinge", "hinge2", "binom"
 ### input variable and select the best variable       
                                         #        xselect <- which.max(abs(mu <- MPinvS %*% u))
 ### estimate regression coefficient (not standardized)
-	    if(twintype == 1){
+            if(twintype == 1){
                 mu <- MPinvS %*% u
                 if(!twinboost)
                     xselect0 <- which.max(abs(mu))
@@ -377,9 +481,9 @@ bst <- function(x,y, cost=0.5, family = c("gaussian", "hinge", "hinge2", "binom"
                 coef1 <- coef0[ind]
             }
             ml.fit <- lm(u~x[, ind]-1)
-	    coef[m] <- coef1 ### note: coef is not the final reported coefficient, see coef.bst
- 	    xselect[m] <- ind
-	    if(ctrl$intercept){
+            coef[m] <- coef1 ### note: coef is not the final reported coefficient, see coef.bst
+            xselect[m] <- ind
+            if(ctrl$intercept){
                 if(center) int[m] <- mean(u)
                 else {
                     int[m] <- (mean(u) - xbar[,ind] * coef[m]) * nu
@@ -391,17 +495,17 @@ bst <- function(x,y, cost=0.5, family = c("gaussian", "hinge", "hinge2", "binom"
                 tree.twin <- vector("list",length(xselect.init))
                 for(j in xselect.init){
 ###Twin L2 Boosting with genral weak learner, Buhlmann, page 8, step 4, in Twin boosting, improved feature selection and prediction
-                    tree.twin[[j]] <- smooth.spline(x=x[,j],y=u,df=df)
+		    tree.twin[[j]] <- smooth.spline(x=x[,j],y=u,df=df)
                     pred.tr <- fitted(tree.twin[[j]])
-                    ss <- sum(pred.tr^2)
+		    ss <- sum(pred.tr^2)
                     if(twinboost){   
                         cor.w[j] <- cov(f.init,pred.tr)/sqrt(sum(pred.tr^2))
                         mse.w[j] <- cor.w[j]^2 * (2*sum(u*pred.tr) - ss)
                     }
                     else mse.w[j] <- 2*sum(u*pred.tr) - ss
                 }   
-                ind <- which.max(mse.w)
-                ml.fit <- tree.twin[[ind]]
+		ind <- which.max(mse.w)
+		ml.fit <- tree.twin[[ind]]
                 xselect[m] <- ind
             }
         else
@@ -451,12 +555,14 @@ bst <- function(x,y, cost=0.5, family = c("gaussian", "hinge", "hinge2", "binom"
             if(ctrl$intercept)
                 Fboost <- Fboost + int[m]
         }
+	if(trun)
+		Fboost <- pmin(1, pmax(-1, Fboost)) ### truncated at -1 or 1
         if(family %in% c("huber", "tgaussianDC") && (is.null(s) || s < 0)) ### adaptive threshold for Huber loss, but the loss may not decrease along the path
             fk <- Fboost
         if(family %in% c("tgaussianDC", "thingeDC", "tbinomDC", "binomdDC", "texpoDC", "tpoissonDC", "thuberDC") && threshold=="adaptive")
             fk <- Fboost
-        risk[m] <- mean(loss(y, Fboost, cost = cost, family = family, s=s, sh=sh, fk=fk))
-	if(trace){
+    	    risk[m] <- mean(loss(y, Fboost, cost = cost, family = family, s=s, sh=sh, fk=fk))
+        if(trace){
             if(m %% 10==0) cat("\nm=", m, "  risk = ", risk[m])
         } 
         ens[[m]] <- ml.fit
@@ -482,14 +588,12 @@ predict.bst <- function(object, newdata=NULL, newy=NULL, mstop=NULL, type=c("res
         mstop <- object$ctrl$mstop
     else if(mstop > object$ctrl$mstop)
         stop("mstop must be equal or smaller than the one used for estimation ", object$ctrl$mstop)
-                                        #  if((type=="loss" || type=="error") && (is.null(newdata) || is.null(newy)))
-                                        #    stop("For estimation of loss or error, both newdata and newy are needed\n")
     if (!is.null(newdata)) {
         if (is.null(colnames(newdata)))
             stop("missing column names for ", sQuote("newdata"))
     }
     if (!is.null(newdata) && !is.null(newy)){
-	    if(dim(newdata)[1] != length(newy))
+        if(dim(newdata)[1] != length(newy))
             stop("newdata and newy should have the same number of samples\n")
     }
     type <- match.arg(type)
@@ -540,22 +644,32 @@ predict.bst <- function(object, newdata=NULL, newy=NULL, mstop=NULL, type=c("res
             risk[m] <- mean(loss(ynow, lp, cost = cost, family = family, s=s, sh=sh, fk=lp))
         }
         else if(type == "error"){
-            tmp <- sign(lp)
-            risk[m] <- (mean(ynow != tmp))
+            risk[m] <- evalerr(family, ynow, lp)
         }
     }
 
     if(type == "all.res")
         return(res)
     else 
-        if(type == "class")
+        if(type == "class" && family %in% c("hinge", "hinge2", "binom", "expo", "thingeDC", "tbinomDC", "binomdDC", "texpoDC", "thinge", "tbinom", "binomd", "texpo", "closs", "clossMM", "gloss", "glossMM", "qloss", "qlossMM"))
             lp <- sign(lp)
     else if(type %in% c("loss", "error")) lp <- risk
     return(drop(lp))
 }
 
+### compute classification error based on predictive values
+evalerr <- function(family, y, yhat){
+    	if(family %in% c("gaussian", "poisson", "tgaussianDC", "tpoissonDC", "tgaussian", "tpoisson", "huber", "thuber", "thuberDC", "clossR", "clossRMM", "lar")){
+        mean((y - yhat)^2)
+    }
+    else if(family %in% c("hinge", "hinge2", "binom", "expo", "thingeDC", "tbinomDC", "binomdDC", "texpoDC", "thinge", "tbinom", "binomd", "texpo", "closs", "clossMM", "gloss", "glossMM", "qloss", "qlossMM")){
+        tmp <- sign(yhat)
+        (mean(y != tmp))
+    }
+}
+
 "cv.bst" <-
-    function(x, y, K = 10, cost = 0.5, family = c("gaussian", "hinge", "hinge2", "binom", "expo", "poisson", "tgaussianDC", "thingeDC", "tbinomDC", "binomdDC", "texpoDC", "tpoissonDC"), 
+    function(x, y, K = 10, cost = 0.5, family = c("gaussian", "hinge", "hinge2", "binom", "expo", "poisson", "tgaussianDC", "thingeDC", "tbinomDC", "binomdDC", "texpoDC", "tpoissonDC", "clossR", "closs", "gloss", "qloss", "lar"), 
              learner = c("ls", "sm", "tree"), ctrl = bst_control(), type = c("loss", "error"), plot.it = TRUE, main=NULL, se = TRUE, n.cores=2, ...)
 {
     call <- match.call()
@@ -577,14 +691,14 @@ predict.bst <- function(object, newdata=NULL, newy=NULL, mstop=NULL, type=c("res
     fraction <- 1:mstop
     registerDoParallel(cores=n.cores)
     i <- 1  ###needed to pass R CMD check with parallel code below
-        residmat <- foreach(i=seq(K), .combine=cbind) %dopar% {
-  	  omit <- all.folds[[i]]
+    residmat <- foreach(i=seq(K), .combine=cbind) %dopar% {
+        omit <- all.folds[[i]]
         if(ctrl$twinboost){
             ctrl.cv$f.init <- ctrl$f.init[ - omit]
         }
         fit <- bst(x[ - omit,,drop=FALSE  ], y[ - omit], cost = cost, family = family, learner = learner, ctrl = ctrl.cv, ...)
-	predict(fit, newdata = x[omit,  ,drop=FALSE], newy=y[omit], mstop = mstop, type=type)
-}
+        predict(fit, newdata = x[omit,  ,drop=FALSE], newy=y[omit], mstop = mstop, type=type)
+    }
     cv <- apply(residmat, 1, mean)
     cv.error <- sqrt(apply(residmat, 1, var)/K)
     object<-list(residmat = residmat, mstop = fraction, cv = cv, cv.error = cv.error, family=family)

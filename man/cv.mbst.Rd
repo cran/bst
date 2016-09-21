@@ -7,7 +7,7 @@
 }
 \usage{
 cv.mbst(x, y, balance=FALSE, K = 10, cost = NULL, 
-family = c("hinge","hinge2","thingeDC"), 
+family = c("hinge","hinge2","thingeDC", "closs", "clossMM"), 
 learner = c("tree", "ls", "sm"), ctrl = bst_control(), 
 type = c("loss","error"), plot.it = TRUE, se = TRUE, n.cores=2, ...)
 }

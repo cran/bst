@@ -62,3 +62,10 @@
   o  change type=c("risk", "misc") to type=c("loss", "error") in cross validation related functions, to be consistent with predict functions
   o  add cv.rbst
   o  add index.html to inst/doc
+
+                CHANGES in `bst' VERSION 0.3-14 (03-12-2016)
+  o  add family="closs", "clossMM", "clossR", "clossRMM", "gloss", "glossMM", "qloss", "qlossMM" in bst function
+  o  add rfamily="closs", "gloss", "qloss" in rbst function
+  o  add family="closs", "clossMM" in mbst function
+  o  add rfamily="closs" in rmbst function
+  o  add vignette files for breast cancer data analysis

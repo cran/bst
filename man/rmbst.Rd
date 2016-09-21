@@ -1,13 +1,13 @@
 \name{rmbst}
 \alias{rmbst}
-\title{ Robust Boosting for Multi-class Truncated Loss Functions}
+\title{ Robust Boosting for Multi-class Robust Loss Functions}
 \description{
-  Gradient boosting for optimizing robust loss functions with componentwise
+  MM (majorization/minization) based gradient boosting for optimizing nonconvex robust loss functions with componentwise
   linear, smoothing splines, tree models as base learners.
 }
 
 \usage{
-rmbst(x, y, cost = 0.5, rfamily = "thinge", ctrl=bst_control(),
+rmbst(x, y, cost = 0.5, rfamily = c("thinge", "closs"), ctrl=bst_control(),
 control.tree=list(maxdepth = 1),learner=c("ls","sm","tree"),del=1e-10)
 }
 \arguments{
@@ -25,7 +25,7 @@ control.tree=list(maxdepth = 1),learner=c("ls","sm","tree"),del=1e-10)
   \item{del}{convergency critera}
 }
 \details{
- A linear or nonlinear classifier is fitted using robust boosting algorithm. 
+An MM algorithm operates by creating a convex surrogate function that majorizes the nonconvex objective function. When the surrogate function is minimized with gradient boosting algorithm, the desired objective function is decreased. The MM algorithm contains difference of convex (DC) for \code{rfamily="thinge"}, and quadratic majorization boosting algorithm (QMBA) for \code{rfamily="closs"}. 
 }
 \value{
   An object of class \code{bst} with \code{\link{print}}, \code{\link{coef}},

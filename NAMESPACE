@@ -1,5 +1,5 @@
-export(bst, rbst, rbstpath, cv.rbst,
-       bst_control, gaussloss, hingeloss, loss, gaussngra, hingengra, ngradient, plotCVbst, cv.bst, fpartial.bst, mhingeova, cv.mhingeova, mada, cv.mada, 
+export(bst, rbst, rbstpath, cv.rbst, bfunc,
+       bst_control, gaussloss, hingeloss, loss, gaussngra, hingengra, gradient, ngradient, plotCVbst, cv.bst, fpartial.bst, mhingeova, cv.mhingeova, mada, cv.mada, evalerr, 
        mhingebst_fit, mhingebst, loss.mhingebst, cv.mhingebst, fpartial.mhingebst, nsel, ex1data, balanced.folds, permute.rows, bst.sel, mbst, mbst_fit, loss.mbst, cv.mbst, fpartial.mbst, rmbst, cv.rmbst)
 exportClasses("bst", "mhingebst")
 exportClasses("mhingeova")
@@ -27,4 +27,4 @@ importFrom("methods", "show")
 importFrom("stats", "coef", "cov", "fitted", "lm", "predict", "runif",
      "smooth.spline", "var")
 importFrom("utils", "combn")
-importFrom("stats", "median", "quantile", "weighted.mean")
+importFrom("stats", "median", "quantile", "weighted.mean", "pnorm")

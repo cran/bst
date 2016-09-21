@@ -5,12 +5,12 @@
 \alias{fpartial.mbst}
 \title{ Boosting for Multi-Classification}
 \description{
-  Gradient boosting for optimizing multi-class hinge or robust hinge loss loss functions with componentwise
+  Gradient boosting for optimizing multi-class loss functions with componentwise
   linear, smoothing splines, tree models as base learners.
 }
 
 \usage{
-mbst(x, y, cost = NULL, family = c("hinge", "hinge2", "thingeDC"), 
+mbst(x, y, cost = NULL, family = c("hinge", "hinge2", "thingeDC", "closs", "clossMM"), 
 ctrl = bst_control(), control.tree=list(fixed.depth=TRUE, 
 n.term.node=6, maxdepth = 1), learner = c("ls", "sm", "tree"))
 \method{print}{mbst}(x, ...)

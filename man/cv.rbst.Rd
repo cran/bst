@@ -7,9 +7,9 @@
 }
 \usage{
 cv.rbst(x, y, K = 10, cost = 0.5, rfamily = c("tgaussian", "thuber", "thinge", 
-"tbinom", "binomd", "texpo", "tpoisson"), learner = c("ls", "sm", "tree"), 
-ctrl = bst_control(), type = c("loss", "error"), plot.it = TRUE, main = NULL, 
-se = TRUE, n.cores=2,...)
+"tbinom", "binomd", "texpo", "tpoisson", "clossR", "closs", "gloss", "qloss"), 
+learner = c("ls", "sm", "tree"), ctrl = bst_control(), type = c("loss", "error"), 
+plot.it = TRUE, main = NULL, se = TRUE, n.cores=2,...)
 }
 \arguments{
   \item{x}{ a data frame containing the variables in the model.}

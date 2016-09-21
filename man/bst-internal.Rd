@@ -4,6 +4,7 @@
 \alias{hingeloss}
 \alias{hingengra}
 \alias{loss}
+\alias{gradient}
 \alias{ngradient}
 \alias{plotCVbst}
 \alias{cvfolds}
