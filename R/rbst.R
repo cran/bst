@@ -44,23 +44,8 @@ rbst <- function(x,y, cost=0.5, rfamily=c("tgaussian", "thuber", "thinge", "tbin
         }
     }
     fk <- ctrl$fk
-    if(is.null(s)){
-        if(rfamily=="tgaussian" || rfamily=="thuber"){
-            stop("how to find s is not implemented\n")
-        }
-        else
-            s <- switch(rfamily,       
-                        "thinge"= -1,
-                        "tbinom"= -log(3),
-                        "binomd"= log(4),
-                        "texpo"= log(0.5),
-                        "tpoisson"= 5*mean(y),
-                        "closs"=1,
-                        "gloss"=1,
-                        "qloss"=2,
-                        "clossR"=1
-                        )
-    }
+    if(is.null(s))
+       stop("s has to be provided, see details in help(rbst)\n")
     famtype <- switch(rfamily,
                       "tgaussian"="tgaussianDC",
                       "thuber"="thuberDC",
@@ -118,7 +103,8 @@ rbst <- function(x,y, cost=0.5, rfamily=c("tgaussian", "thuber", "thinge", "tbin
             if(is.null(ctrl$fk)) fk <- 0
             ctrl$s <- quantile(gaussloss(y, ctrl$fk), 0.5)   ### adaptive s,  test program
         }
-        RET <- bst(x, y, cost=cost, family=famtype, ctrl = ctrl, control.tree=control.tree, learner=learner)
+	###add an option on how to initiate the starting values, depending on ctrl$start and ctrl$fk
+	RET <- bst(x, y, cost=cost, family=famtype, ctrl = ctrl, control.tree=control.tree, learner=learner)
 	los[k] <- mean(loss(y, f=RET$yhat, cost, family = rfamily, s=ctrl$s, sh=ctrl$sh, fk=NULL))
 	if(trace){
             ellu1 <- mean(loss(y, f=ctrl$fk, fk=ctrl$fk, family=famtype, s=ctrl$s)) ### loss values \ell(u) at the kth iteration
@@ -134,8 +120,8 @@ rbst <- function(x,y, cost=0.5, rfamily=c("tgaussian", "thuber", "thinge", "tbin
 		            k <- iter
 		    }
 		 }
-        k <- k + 1
 	if(trace) cat("d1=", d1, ", k=", k, ", d1 > del && k <= iter: ", (d1 > del && k <= iter), "\n")
+        k <- k + 1
     }
     RET$x <- x
     RET$y <- y
@@ -178,6 +164,7 @@ rbst <- function(x,y, cost=0.5, rfamily=c("tgaussian", "thuber", "thinge", "tbin
         predict(fit, newdata = x[omit,  ,drop=FALSE], newy=y[omit], mstop = mstop, type=type)
 
     }
+    stopImplicitCluster()
     cv <- apply(residmat, 1, mean)
     cv.error <- sqrt(apply(residmat, 1, var)/K)
     object<-list(residmat = residmat, mstop = fraction, cv = cv, cv.error = cv.error, rfamily=rfamily)

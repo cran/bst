@@ -3,7 +3,7 @@
 
 \usepackage{hyperref}
 %\usepackage{natbib}
-%\VignetteIndexEntry{Classification of UCI Machine Learning Datasets (Short)}
+%\VignetteIndexEntry{Classification of UCI Machine Learning Datasets (without Results)}
 %\VignetteDepends{knitr}
 %\VignetteEngine{knitr::knitr}
 \hypersetup{%

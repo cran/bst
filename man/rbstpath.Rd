@@ -1,9 +1,9 @@
 \name{rbstpath}
 \alias{rbstpath}
-\title{ Robust Boosting Path for Truncated Loss Functions}
+\title{ Robust Boosting Path for Nonconvex Loss Functions}
 \description{
   Gradient boosting path for optimizing robust loss functions with componentwise
-  linear, smoothing splines, tree models as base learners.
+  linear, smoothing splines, tree models as base learners. See details below before use.
 }
 
 \usage{
@@ -18,7 +18,7 @@ rbstpath(x, y, rmstop=seq(40, 400, by=20), ctrl=bst_control(), del=1e-16, ...)
   \item{...}{arguments passed to \code{rbst}}
 }
 \details{
- This function invokes \code{rbst} with \code{mstop} being each element of vector \code{rmstop}. It can provide different paths. Thus \code{rmstop} serves as another hyper-parameter. However, the most important hyper-parameter is the loss truncation point.  
+ This function invokes \code{rbst} with \code{mstop} being each element of vector \code{rmstop}. It can provide different paths. Thus \code{rmstop} serves as another hyper-parameter. However, the most important hyper-parameter is the loss truncation point or the point determines the level of nonconvexity. This is an experimental function and may not be needed in practice. 
 }
 \value{
   A length \code{rmstop} vector of lists with each element being an object of class \code{rbst}.
@@ -42,6 +42,6 @@ dat.m2 <- rbst(x, y, ctrl = bst_control(mstop=50, s=0, trace=TRUE),
 rfamily = "thinge", learner = "ls")
 predict(dat.m2)
 rmstop <- seq(10, 40, by=10)
-dat.m3 <- rbstpath(x, y, rmstop, rfamily = "thinge", learner = "ls")
+dat.m3 <- rbstpath(x, y, rmstop, ctrl=bst_control(s=0), rfamily = "thinge", learner = "ls")
 }
 \keyword{classification}

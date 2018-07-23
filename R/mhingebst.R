@@ -420,6 +420,7 @@ predict.mhingebst <- function(object, newdata=NULL, newy=NULL, mstop=NULL, type=
             fit <- mhingebst(x[ - omit,,drop=FALSE  ], y[ - omit], cost = cost, family = family, learner = learner, ctrl = ctrl.cv, ...)
             predict.mhingebst(fit, newdata = x[omit,  ,drop=FALSE], newy=y[ omit], mstop = mstop, type=type)
         }
+	stopImplicitCluster()
         cv <- apply(residmat, 1, mean)
         cv.error <- sqrt(apply(residmat, 1, var)/K)
         object<-list(residmat=residmat, mstop = fraction, cv = cv, cv.error = cv.error)

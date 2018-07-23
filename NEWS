@@ -69,3 +69,11 @@
   o  add family="closs", "clossMM" in mbst function
   o  add rfamily="closs" in rmbst function
   o  add vignette files for breast cancer data analysis
+
+                CHANGES in `bst' VERSION 0.3-15 (07-31-2017)
+  o  stop bst running if any fk=NULL and family="tgaussianDC", "thingeDC", "tbinomDC", "binomdDC", "texpoDC", "tpoissonDC", "thuberDC", "clossR", "clossRMM", "clossMM", "glossMM", "qlossMM"))
+  o  importFrom("doParallel", "stopImplicitCluster")
+  o  add stopImplicitCluster() after registerDoParallel
+  o  change the offset value for family="huber", "thuber" or "lar". This is the initial value of boosting in bst function
+  o  add a new parameter 'start' in bst_control, a logical value. If start=TRUE and fk in bst_control is a vector of values, then bst iterations begin with fk. Otherwise, bst iterations begin with the default values. This can be useful, for instance, in rbst for the MM boosting algorithm.
+  o  drop bst-package.Rd in man directory

@@ -5,7 +5,7 @@
 %% need no \usepackage{Sweave.sty}
 %\usepackage{natbib}
 %\usepackage{/usr/lib/R/share/texmf/Sweave}
-%\VignetteIndexEntry{Classification of Cancer Types Using Gene Expression Data (Short)}
+%\VignetteIndexEntry{Classification of Cancer Types Using Gene Expression Data (without Results)}
 %\VignetteDepends{}
 %\SweaveOpts{keep.source=FALSE}
 \hypersetup{%

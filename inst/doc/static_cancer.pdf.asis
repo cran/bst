@@ -1,4 +1,4 @@
-%\VignetteIndexEntry{Analysis of Cancer Data with Boosting Algorithm for Nonconvex Loss (Long)}
+%\VignetteIndexEntry{Classification of Breast Cancer Clinical Stage with Gene Expression Data (with Results)}
 %\VignetteEngine{R.rsp::asis}
 %\VignetteKeyword{PDF}
 %\VignetteKeyword{vignette}

@@ -31,7 +31,7 @@ nrun <- 100
 per <- c(0, 0.05, 0.10, 0.15)
 learntype <- c("tree", "ls")[2]
 tuning <- "error"
-n.cores <- 5 
+n.cores <- 4 
 plot.it <- TRUE
 ### robust tuning parameters used in bst/rbst function
 s <- c(0.9, 1.01,0.5, -0.2, 0.8, -0.5, -0.2)

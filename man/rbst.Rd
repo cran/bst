@@ -13,9 +13,9 @@ control.tree=list(maxdepth = 1), learner=c("ls","sm","tree"),del=1e-10)
 }
 \arguments{
   \item{x}{ a data frame containing the variables in the model.}
-  \item{y}{ vector of responses. \code{y} must be in \{1, -1\}. }
+  \item{y}{ vector of responses. \code{y} must be in \{1, -1\} for classification. }
   \item{cost}{ price to pay for false positive, 0 < \code{cost} < 1; price of false negative is 1-\code{cost}.}
-  \item{rfamily}{ \code{family} = "tgaussian" for truncated square error loss, "thinge" for truncated hinge loss, "tbinom" for truncated logistic loss, "binomd" for logistic difference loss, "tpoisson" for truncated Poisson loss.}
+  \item{rfamily}{ robust loss function, see details. }
   \item{ctrl}{ an object of class \code{\link{bst_control}}.}
   \item{control.tree}{ control parameters of rpart. }
   \item{learner}{ a character specifying the component-wise base learner to be used:
@@ -27,6 +27,10 @@ control.tree=list(maxdepth = 1), learner=c("ls","sm","tree"),del=1e-10)
 }
 \details{
 An MM algorithm operates by creating a convex surrogate function that majorizes the nonconvex objective function. When the surrogate function is minimized with gradient boosting algorithm, the desired objective function is decreased. The MM algorithm contains difference of convex (DC) algorithm for \code{rfamily=c("tgaussian", "thuber","thinge", "tbinom", "binomd", "texpo", "tpoisson")} and quadratic majorization boosting algorithm (QMBA) for \code{rfamily=c("clossR", "closs", "gloss", "qloss")}. 
+  
+\code{rfamily} = "tgaussian" for truncated square error loss, "thuber" for truncated Huber loss, "thinge" for truncated hinge loss, "tbinom" for truncated logistic loss, "binomd" for logistic difference loss, "texpo" for truncated exponential loss, "tpoisson" for truncated Poisson loss, "clossR" for C-loss in regression, "closs" for C-loss in classification, "gloss" for G-loss, "qloss" for Q-loss.
+
+\code{s} must be a numeric value to be specified in \code{bst_control}. For \code{rfamily="thinge", "tbinom", "texpo"}  \code{s < 0}. For \code{rfamily="binomd", "tpoisson", "closs", "qloss", "clossR"} , \code{s > 0} and for \code{rfamily="gloss"}, \code{s > 1}. Some suggested \code{s} values: "thinge"= -1, "tbinom"= -log(3), "binomd"= log(4), "texpo"= log(0.5), "closs"=1, "gloss"=1.5, "qloss"=2, "clossR"=1.
 }
 \value{
   An object of class \code{bst} with \code{\link{print}}, \code{\link{coef}},
@@ -42,7 +46,18 @@ An MM algorithm operates by creating a convex surrogate function that majorizes 
 \item{xselect}{selected variables in \code{mstop}}
 \item{coef}{estimated coefficients in \code{mstop}}
 }
-\seealso{\code{\link{cv.bst}} for cross-validated stopping iteration. Furthermore see
+
+\references{
+
+  Zhu Wang (2018),
+  Quadratic Majorization for Nonconvex Loss with
+                Applications to the Boosting Algorithm, \emph{Journal of Computational and Graphical Statistics}, \url{http://dx.doi.org/10.1080/10618600.2018.1424635}
+  
+  Zhu Wang (2018), Robust boosting with truncated loss functions, \emph{Electronic Journal of Statistics}, \bold{12}(1), 599-650, \url{https://doi.org/10.1214/18-EJS1404}
+      
+}
+
+\seealso{\code{\link{cv.rbst}} for cross-validated stopping iteration. Furthermore see
   \code{\link{bst_control}}}
 
 \author{ Zhu Wang }

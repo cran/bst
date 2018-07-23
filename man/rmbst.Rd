@@ -40,7 +40,17 @@ An MM algorithm operates by creating a convex surrogate function that majorizes 
 \item{xselect}{selected variables in \code{mstop}}
 \item{coef}{estimated coefficients in \code{mstop}}
 }
-\seealso{\code{\link{cv.mbst}} for cross-validated stopping iteration. Furthermore see
+\references{
+
+  Zhu Wang (2018),
+  Quadratic Majorization for Nonconvex Loss with
+                Applications to the Boosting Algorithm, \emph{Journal of Computational and Graphical Statistics}, \url{http://dx.doi.org/10.1080/10618600.2018.1424635}
+  
+  Zhu Wang (2018), Robust boosting with truncated loss functions, \emph{Electronic Journal of Statistics}, \bold{12}(1), 599-650, \url{https://doi.org/10.1214/18-EJS1404}
+
+}
+
+\seealso{\code{\link{cv.rmbst}} for cross-validated stopping iteration. Furthermore see
   \code{\link{bst_control}}}
 
 \author{ Zhu Wang }

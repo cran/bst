@@ -309,12 +309,12 @@ hingengra2 <- function(y, f, a=0.5){
     res
 }
 
-bst_control <- function(mstop = 50, nu = 0.1, twinboost = FALSE, twintype=1, threshold=c("standard", "adaptive"), f.init = NULL, coefir = NULL, xselect.init = NULL, center = FALSE, trace = FALSE, numsample = 50, df = 4, s=NULL, sh=NULL, q=NULL, qh=NULL, fk=NULL, iter=10, intercept=FALSE, trun=FALSE) {
+bst_control <- function(mstop = 50, nu = 0.1, twinboost = FALSE, twintype=1, threshold=c("standard", "adaptive"), f.init = NULL, coefir = NULL, xselect.init = NULL, center = FALSE, trace = FALSE, numsample = 50, df = 4, s=NULL, sh=NULL, q=NULL, qh=NULL, fk=NULL, start=FALSE, iter=10, intercept=FALSE, trun=FALSE) {
     if(length(s) > 1) stop("s must be one value if any\n")
     threshold <- match.arg(threshold)
     RET <- list(mstop = mstop, nu = nu, 
                 center = center, df = df, threshold=threshold,
-                trace = trace, twinboost = twinboost, twintype=twintype, f.init = f.init, coefir = coefir, xselect.init = xselect.init, s=s, sh=sh, q=q, qh=qh, fk=fk, iter=iter, intercept=intercept, trun=trun)
+                trace = trace, twinboost = twinboost, twintype=twintype, f.init = f.init, coefir = coefir, xselect.init = xselect.init, s=s, sh=sh, q=q, qh=qh, fk=fk, start=start, iter=iter, intercept=intercept, trun=trun)
     class(RET) <- c("bst_control")
     RET
 }
@@ -353,6 +353,8 @@ bst <- function(x,y, cost=0.5, family = c("gaussian", "hinge", "hinge2", "binom"
             stop("s must be numeric for family ", family, "\n")
     sh <- ctrl$sh
     fk <- ctrl$fk
+    if(any(is.null(fk)) && family %in% c("tgaussianDC", "thingeDC", "tbinomDC", "binomdDC", "texpoDC", "tpoissonDC", "thuberDC", "clossR", "clossRMM", "clossMM", "glossMM", "qlossMM"))
+    stop("bst function is not appropriately used if any element of fk=NULL\n")
     maxdepth <- control.tree$maxdepth
     if(twinboost){
         if(is.null(xselect.init))
@@ -376,13 +378,17 @@ bst <- function(x,y, cost=0.5, family = c("gaussian", "hinge", "hinge2", "binom"
         meanx <- rep(0, length(y))
     if(ctrl$intercept && !ctrl$center) xbar <- matrix(apply(x, 2, mean), nrow=1)
     ens <- vector("list",mstop)
-    Fboost <- offset <- 0
+    offset <- 0
     if(family == "gaussian" || family=="tgaussianDC"){
         offset <- mean(y)
     }
-    else if(family == "huber" || family == "thuberDC")
-        offset <- median(y)
-    else if(family %in% c("poisson", "tpoissonDC"))
+    else if(family == "huber" || family == "thuberDC" || family=="lar"){
+    #offset <- median(y)
+        w <- rep(1/length(y), length(y)) 
+        risk <- function(y, f) sum(w * loss(y, f, family=family))
+	offset <- optimize(risk, interval = range(y), y = y)$minimum
+}
+    	else if(family %in% c("poisson", "tpoissonDC"))
         offset <- log(mean(y))
     else if(family %in% c("binom", "tbinomDC", "binomdDC", "expo", "texpoDC")){
         ly <- ifelse(y==1, 1-cost, cost)
@@ -391,7 +397,10 @@ bst <- function(x,y, cost=0.5, family = c("gaussian", "hinge", "hinge2", "binom"
         if(family %in% c("expo", "texpoDC"))
             offset <- 1/2*offset
     }
-    Fboost <- rep(offset,length(y))
+    ###How to start Fboost with pre-specified values?
+    if(ctrl$start && !is.null(ctrl$fk))
+    Fboost <- ctrl$fk
+    else Fboost <- rep(offset,length(y))
                                         #if(!twinboost && !is.null(f.init)) ### for nonconvex loss function, may need more work for twin boosting + nonconvex loss 
                                         #Fboost <- f.init
     ystar <- res <- matrix(NA,length(y),ncol(x))
@@ -699,6 +708,7 @@ evalerr <- function(family, y, yhat){
         fit <- bst(x[ - omit,,drop=FALSE  ], y[ - omit], cost = cost, family = family, learner = learner, ctrl = ctrl.cv, ...)
         predict(fit, newdata = x[omit,  ,drop=FALSE], newy=y[omit], mstop = mstop, type=type)
     }
+    stopImplicitCluster()
     cv <- apply(residmat, 1, mean)
     cv.error <- sqrt(apply(residmat, 1, var)/K)
     object<-list(residmat = residmat, mstop = fraction, cv = cv, cv.error = cv.error, family=family)

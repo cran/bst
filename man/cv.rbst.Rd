@@ -1,9 +1,8 @@
 \name{cv.rbst}
 \alias{cv.rbst}
-\title{ Cross-Validation for Truncated Loss Boosting}
+\title{ Cross-Validation for Nonconvex Loss Boosting}
 \description{
-  Cross-validated estimation of the empirical risk/error
-  for truncated loss boosting parameter selection.
+  Cross-validated estimation of the empirical risk/error, can be used for tuning parameter selection.
 }
 \usage{
 cv.rbst(x, y, K = 10, cost = 0.5, rfamily = c("tgaussian", "thuber", "thinge", 
@@ -16,7 +15,7 @@ plot.it = TRUE, main = NULL, se = TRUE, n.cores=2,...)
   \item{y}{ vector of responses. \code{y} must be in \{1, -1\} for binary classification}
   \item{K}{ K-fold cross-validation }
   \item{cost}{ price to pay for false positive, 0 < \code{cost} < 1; price of false negative is 1-\code{cost}.}
-  \item{rfamily}{ truncated loss function types. }
+  \item{rfamily}{ nonconvex loss function types. }
   \item{learner}{ a character specifying the component-wise base learner to be used:
       \code{ls} linear models,
       \code{sm} smoothing splines,
@@ -38,10 +37,11 @@ plot.it = TRUE, main = NULL, se = TRUE, n.cores=2,...)
   \item{mstop}{ boosting iteration steps at which CV curve should be computed. }
   \item{cv}{The CV curve at each value of mstop}
   \item{cv.error}{The standard error of the CV curve}
-  \item{rfamily}{ truncated loss function types. }
+  \item{rfamily}{ nonconvex loss function types. }
   ...
 }
-\seealso{ \code{\link{bst}} }
+\seealso{ \code{\link{rbst}} }
+\author{ Zhu Wang }
 \examples{
 \dontrun{
 x <- matrix(rnorm(100*5),ncol=5)

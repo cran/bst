@@ -1,9 +1,8 @@
 \name{cv.rmbst}
 \alias{cv.rmbst}
-\title{ Cross-Validation for Truncated Multi-class Loss Boosting}
+\title{ Cross-Validation for Nonconvex Multi-class Loss Boosting}
 \description{
-  Cross-validated estimation of the empirical multi-class loss
-  for boosting parameter selection.
+  Cross-validated estimation of the empirical multi-class loss, can be used for tuning parameter selection.
 }
 \usage{
 cv.rmbst(x, y, balance=FALSE, K = 10, cost = NULL, rfamily = c("thinge", "closs"), 
@@ -44,4 +43,5 @@ Implementing the negative gradient corresponding
   \item{cv.error}{The standard error of the CV curve}
   ...
 }
-\seealso{ \code{\link{mbst}} }
+\seealso{ \code{\link{rmbst}}}
+\author{ Zhu Wang } 

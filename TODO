@@ -1,3 +1,5 @@
+in bst_control function, by default, center=FALSE and intercept=FALSE. Should change to TRUE by default at least for least squares base learner?
+
 in mbst_fit function, twin boosting for learner="ls" has the same form as other learners, which should be updated as in bst function
 
 in mbst.R
