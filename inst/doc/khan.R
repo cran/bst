@@ -1,13 +1,13 @@
 ### R code from vignette source 'khan.Rnw'
 
 ###################################################
-### code chunk number 1: khan.Rnw:46-47
+### code chunk number 1: khan.Rnw:45-46
 ###################################################
 options(prompt = "R> ", continue = " ", width = 70, digits =4, useFancyQuotes = FALSE)
 
 
 ###################################################
-### code chunk number 2: khan.Rnw:49-95
+### code chunk number 2: khan.Rnw:48-94
 ###################################################
 library("bst")
 datafile <- system.file("extdata", "supplemental_data", package="bst")
@@ -58,7 +58,7 @@ colnames(test) <- paste("x", 1:dim(test)[2], sep="")
 
 
 ###################################################
-### code chunk number 3: khan.Rnw:100-104 (eval = FALSE)
+### code chunk number 3: khan.Rnw:99-103 (eval = FALSE)
 ###################################################
 ## m <- 30
 ## set.seed(123)
@@ -67,7 +67,7 @@ colnames(test) <- paste("x", 1:dim(test)[2], sep="")
 
 
 ###################################################
-### code chunk number 4: khan.Rnw:109-114 (eval = FALSE)
+### code chunk number 4: khan.Rnw:108-113 (eval = FALSE)
 ###################################################
 ## m1 <- 20
 ## dat.m1 <- mhingebst(x=train, y=train.classes, ctrl = bst_control(mstop=m1),
@@ -77,13 +77,13 @@ colnames(test) <- paste("x", 1:dim(test)[2], sep="")
 
 
 ###################################################
-### code chunk number 5: khan.Rnw:118-119 (eval = FALSE)
+### code chunk number 5: khan.Rnw:117-118 (eval = FALSE)
 ###################################################
 ## plot(nsel(dat.m1, m1), ylab="No. Genes", xlab="Iteration", lty="solid", type="l")
 
 
 ###################################################
-### code chunk number 6: khan.Rnw:124-131 (eval = FALSE)
+### code chunk number 6: khan.Rnw:123-130 (eval = FALSE)
 ###################################################
 ## m2 <- 20
 ## xinit <- unlist(dat.m1$ensemble)
@@ -95,13 +95,13 @@ colnames(test) <- paste("x", 1:dim(test)[2], sep="")
 
 
 ###################################################
-### code chunk number 7: khan.Rnw:135-136 (eval = FALSE)
+### code chunk number 7: khan.Rnw:134-135 (eval = FALSE)
 ###################################################
 ## plot(nsel(dat.m2, m2), ylab="No. Genes", xlab="Iteration", lty="solid", type="l")
 
 
 ###################################################
-### code chunk number 8: khan.Rnw:142-205 (eval = FALSE)
+### code chunk number 8: khan.Rnw:141-204 (eval = FALSE)
 ###################################################
 ## ### training data
 ## filename <- paste("http://www.broadinstitute.org/mpr/publications/projects/",
@@ -169,7 +169,7 @@ colnames(test) <- paste("x", 1:dim(test)[2], sep="")
 
 
 ###################################################
-### code chunk number 9: khan.Rnw:209-214 (eval = FALSE)
+### code chunk number 9: khan.Rnw:208-213 (eval = FALSE)
 ###################################################
 ## m1 <- m2 <- 200
 ## dat.m1 <- mhingebst(x=train, y=train.classes, ctrl = bst_control(mstop=m1), 
@@ -179,13 +179,13 @@ colnames(test) <- paste("x", 1:dim(test)[2], sep="")
 
 
 ###################################################
-### code chunk number 10: khan.Rnw:218-219 (eval = FALSE)
+### code chunk number 10: khan.Rnw:217-218 (eval = FALSE)
 ###################################################
 ## plot(nsel(dat.m1, m1), ylab="No. Genes", xlab="Iteration", lty="solid", type="l")
 
 
 ###################################################
-### code chunk number 11: khan.Rnw:224-233 (eval = FALSE)
+### code chunk number 11: khan.Rnw:223-232 (eval = FALSE)
 ###################################################
 ## fhat1 <- predict(dat.m1, mstop=150, type="response")
 ## xinit <- unlist(dat.m1$ensemble[1:150])
@@ -199,7 +199,7 @@ colnames(test) <- paste("x", 1:dim(test)[2], sep="")
 
 
 ###################################################
-### code chunk number 12: khan.Rnw:237-238 (eval = FALSE)
+### code chunk number 12: khan.Rnw:236-237 (eval = FALSE)
 ###################################################
 ## plot(nsel(dat.m2, m2), ylab="No. Genes", xlab="Iteration", lty="solid", type="l")
 

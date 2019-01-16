@@ -20,9 +20,8 @@
 }
 
 \author{Zhu Wang \\
-  Connecticut Children's Medical Center\\
-  University of Connecticut School of Medicine\\
-  zwang@connecticutchildrens.org}
+  UT Health San Antonio\\
+  wangz1@uthscsa.edu}
 \title{Classification of Breast Cancer Clinical Stage with Gene Expression Data}
 \begin{document}
 \sloppy

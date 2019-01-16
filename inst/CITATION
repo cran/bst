@@ -44,7 +44,7 @@ citEntry(entry="Article",
 
          textVersion =
          paste("Zhu Wang (2012).", 
-               "Multi-class HingeBoost: Method and Application to the Classification of Cancer Types Using Gene Expression Data.",
+               "Multi-class HingeBoost: Method and Application to the Classification of Cancer Types Using Gene Expression Data",
                "Methods of Information in Medicine, 51(2), 162-167."),
          )
 
@@ -53,12 +53,15 @@ citEntry(entry="Article",
          author = personList(as.person("Zhu Wang")),
          journal      = "Journal of Computational and Graphical Statistics",
          year         = "2018",
+         volume       = "27",
+         number       = "3",
+         pages        = "491-502",
          doi =          "10.1080/10618600.2018.1424635",
 
          textVersion =
          paste("Zhu Wang (2018).", 
                "Quadratic Majorization for Nonconvex Loss with Applications to the Boosting Algorithm", 
-               "Journal of Computational and Graphical Statistics",
+               "Journal of Computational and Graphical Statistics, 27(3), 491-502",
                "http://dx.doi.org/10.1080/10618600.2018.1424635."),
          )
 
