@@ -140,26 +140,26 @@ We use \textbf{bst} to classify patients into 14 cancer types using gene express
 
 <<eval=F>>=
 ### training data
-filename <- paste("http://www.broadinstitute.org/mpr/publications/projects/",
-"Global_Cancer_Map/GCM_Training.res", sep="")
+filename <- paste("http://pubs.broadinstitute.org/mpr/projects/",
+		  "Global_Cancer_Map/GCM_Training.res", sep="")
 dat0 <- read.delim(filename, sep="\t", header=FALSE, skip=3, quote="")
 tmp <- dat0[,1:290]
 tmp <- tmp[, -seq(4, 290, by=2)]
 tmp <- tmp[, -(1:2)]
 train <- t(tmp)
-filename <- paste("http://www.broadinstitute.org/mpr/publications/projects/",
+filename <- paste("http://pubs.broadinstitute.org/mpr/projects/",
 "Global_Cancer_Map/GCM_Training.cls", sep="")
 train.classes <- read.table(filename, skip=2)+1
 train.classes <- unlist(train.classes)
 ### test data
-filename <- paste("http://www.broadinstitute.org/mpr/publications/projects/",
+filename <- paste("http://pubs.broadinstitute.org/mpr/projects/",
 "Global_Cancer_Map/GCM_Test.res", sep="")
 dat0 <- read.delim(filename, sep="\t", header=FALSE, skip=3, quote="")
 tmp <- dat0[,1:110]
 tmp <- tmp[, -seq(4, 110, by=2)]
 tmp <- tmp[, -(1:2)]
 test <- t(tmp)[1:46,]
-filename <- paste("http://www.broadinstitute.org/mpr/publications/projects/",
+filename <- paste("http://pubs.broadinstitute.org/mpr/projects/",
 "Global_Cancer_Map/GCM_Test.cls", sep="")
 test.classes <- read.table(filename, skip=2)+1
 test.classes <- test.classes[test.classes!=15]
@@ -236,10 +236,9 @@ Plot the evolution of the number of genes selected versus the iteration counter,
 <<fig=TRUE, eval=F>>=
 plot(nsel(dat.m2, m2), ylab="No. Genes", xlab="Iteration", lty="solid", type="l")
 @
-
-%<<sessionInfo>>=
-%sessionInfo();
-%@
+<<sessionInfo>>=
+sessionInfo();
+@
 \bibliographystyle{plainnat}
 \bibliography{bst}
 \end{document}

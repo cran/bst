@@ -1,8 +1,8 @@
 Package: bst
 Type: Package
 Title: Gradient Boosting
-Version: 0.3-16
-Date: 2019-01-14
+Version: 0.3-17
+Date: 2019-01-31
 Authors@R: c(person("Zhu", "Wang", role = c("aut", "cre"),
                     email = "wangz1@uthscsa.edu"),
              person("Torsten", "Hothorn", role = "ctb"))
@@ -15,7 +15,7 @@ Suggests: hdi, pROC, R.rsp, knitr, gdata
 VignetteBuilder: R.rsp, knitr
 License: GPL (>= 2)
 LazyLoad: yes
-Packaged: 2019-01-15 19:50:40 UTC; zhu
+Packaged: 2019-02-27 15:15:38 UTC; zhu
 NeedsCompilation: no
 Repository: CRAN
-Date/Publication: 2019-01-16 09:10:10 UTC
+Date/Publication: 2019-02-27 17:00:25 UTC

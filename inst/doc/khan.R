@@ -104,26 +104,26 @@ colnames(test) <- paste("x", 1:dim(test)[2], sep="")
 ### code chunk number 8: khan.Rnw:141-204 (eval = FALSE)
 ###################################################
 ## ### training data
-## filename <- paste("http://www.broadinstitute.org/mpr/publications/projects/",
-## "Global_Cancer_Map/GCM_Training.res", sep="")
+## filename <- paste("http://pubs.broadinstitute.org/mpr/projects/",
+## 		  "Global_Cancer_Map/GCM_Training.res", sep="")
 ## dat0 <- read.delim(filename, sep="\t", header=FALSE, skip=3, quote="")
 ## tmp <- dat0[,1:290]
 ## tmp <- tmp[, -seq(4, 290, by=2)]
 ## tmp <- tmp[, -(1:2)]
 ## train <- t(tmp)
-## filename <- paste("http://www.broadinstitute.org/mpr/publications/projects/",
+## filename <- paste("http://pubs.broadinstitute.org/mpr/projects/",
 ## "Global_Cancer_Map/GCM_Training.cls", sep="")
 ## train.classes <- read.table(filename, skip=2)+1
 ## train.classes <- unlist(train.classes)
 ## ### test data
-## filename <- paste("http://www.broadinstitute.org/mpr/publications/projects/",
+## filename <- paste("http://pubs.broadinstitute.org/mpr/projects/",
 ## "Global_Cancer_Map/GCM_Test.res", sep="")
 ## dat0 <- read.delim(filename, sep="\t", header=FALSE, skip=3, quote="")
 ## tmp <- dat0[,1:110]
 ## tmp <- tmp[, -seq(4, 110, by=2)]
 ## tmp <- tmp[, -(1:2)]
 ## test <- t(tmp)[1:46,]
-## filename <- paste("http://www.broadinstitute.org/mpr/publications/projects/",
+## filename <- paste("http://pubs.broadinstitute.org/mpr/projects/",
 ## "Global_Cancer_Map/GCM_Test.cls", sep="")
 ## test.classes <- read.table(filename, skip=2)+1
 ## test.classes <- test.classes[test.classes!=15]
@@ -202,5 +202,11 @@ colnames(test) <- paste("x", 1:dim(test)[2], sep="")
 ### code chunk number 12: khan.Rnw:236-237 (eval = FALSE)
 ###################################################
 ## plot(nsel(dat.m2, m2), ylab="No. Genes", xlab="Iteration", lty="solid", type="l")
+
+
+###################################################
+### code chunk number 13: sessionInfo
+###################################################
+sessionInfo();
 
 
