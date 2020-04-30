@@ -20,4 +20,4 @@ For classification, returns misclassification error. For regression, returns mea
 For classification, returns misclassification error. For regression, returns mean squared error. 
 }
 \author{ Zhu Wang }
-\keyword{classification, regression}
+\keyword{internal}

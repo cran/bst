@@ -353,7 +353,7 @@ bst <- function(x,y, cost=0.5, family = c("gaussian", "hinge", "hinge2", "binom"
             stop("s must be numeric for family ", family, "\n")
     sh <- ctrl$sh
     fk <- ctrl$fk
-    if(any(is.null(fk)) && family %in% c("tgaussianDC", "thingeDC", "tbinomDC", "binomdDC", "texpoDC", "tpoissonDC", "thuberDC", "clossR", "clossRMM", "clossMM", "glossMM", "qlossMM"))
+    if(any(is.null(fk)) && family %in% c("tgaussianDC", "thingeDC", "tbinomDC", "binomdDC", "texpoDC", "tpoissonDC", "thuberDC", "clossRMM", "clossMM", "glossMM", "qlossMM"))
     stop("bst function is not appropriately used if any element of fk=NULL\n")
     maxdepth <- control.tree$maxdepth
     if(twinboost){

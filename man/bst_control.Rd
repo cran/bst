@@ -37,7 +37,13 @@ For \code{family="huber"}, if \code{sh} is not provided, \code{sh} is then updat
 }
 
 \details{
- Objects to specify parameters of the boosting algorithms implemented in \code{\link{bst}}, via the \code{ctrl} argument. The default value of \code{s} is -1 if \code{family="thinge"}, -log(3) if \code{family="tbinom"}, and 4 if \code{family="binomd"}. If \code{trun=TRUE}, boosting classifiers can produce real values in [-1, 1] indicating their confidence in [-1, 1]-valued classification. cf. R. E. Schapire and Y. Singer. Improved boosting algorithms using confidence-rated predictions. In Proceedings of the Eleventh Annual Conference on Computational Learning Theory, pages 80-91, 1998.
+ Objects to specify parameters of the boosting algorithms implemented in \code{\link{bst}}, via the \code{ctrl} argument. 
+ 
+The \code{s} value is for robust nonconvex loss where smaller \code{s} value is more robust to outliers with \code{family="closs", "tbinom", "thinge", "tbinomd"}, and larger \code{s} value more robust with \code{family="clossR", "gloss", "qloss"}.
+
+For \code{family="closs"}, if \code{s=2}, the loss is similar to the square loss; if \code{s=1}, the loss function is an approximation of the hinge loss; for smaller values, the loss function approaches the 0-1 loss function if \code{s<1}, the loss function is a nonconvex function of the margin.
+
+The default value of \code{s} is -1 if \code{family="thinge"}, -log(3) if \code{family="tbinom"}, and 4 if \code{family="binomd"}. If \code{trun=TRUE}, boosting classifiers can produce real values in [-1, 1] indicating their confidence in [-1, 1]-valued classification. cf. R. E. Schapire and Y. Singer. Improved boosting algorithms using confidence-rated predictions. In Proceedings of the Eleventh Annual Conference on Computational Learning Theory, pages 80-91, 1998.
 }
 \value{
   An object of class \code{bst_control}, a list. Note \code{fk} may be updated for robust boosting.

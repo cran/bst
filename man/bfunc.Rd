@@ -19,4 +19,4 @@ A finite upper bound is required in quadratic majorization.
 A positive number.
 }
 \author{ Zhu Wang }
-\keyword{classification, regression}
+\keyword{internal}
