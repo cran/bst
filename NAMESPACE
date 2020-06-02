@@ -1,9 +1,6 @@
 export(bst, rbst, rbstpath, cv.rbst, bfunc,
        bst_control, gaussloss, hingeloss, loss, gaussngra, hingengra, gradient, ngradient, plotCVbst, cv.bst, fpartial.bst, mhingeova, cv.mhingeova, mada, cv.mada, evalerr, 
        mhingebst_fit, mhingebst, loss.mhingebst, cv.mhingebst, fpartial.mhingebst, nsel, ex1data, balanced.folds, permute.rows, bst.sel, mbst, mbst_fit, loss.mbst, cv.mbst, fpartial.mbst, rmbst, cv.rmbst)
-exportClasses("bst", "mhingebst")
-exportClasses("mhingeova")
-exportMethods("show")
 
 importFrom("rpart", "rpart")
 importFrom("rpart", "rpart.control")
