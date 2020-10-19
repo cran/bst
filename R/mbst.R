@@ -509,7 +509,9 @@ predict.mbst <- function(object, newdata=NULL, newy=NULL, mstop=NULL, type=c("re
         all.folds <- balanced.folds(y, K)
     else all.folds <- cv.folds(length(y), K)
     fraction <- seq(mstop)
-    registerDoParallel(cores=n.cores)
+    cl <- eval(parse(text="parallel:::makeCluster(n.cores)"))
+    registerDoParallel(cl)
+    #registerDoParallel(cores=n.cores)
     i <- 1  ###needed to pass R CMD check with parallel code below
     residmat <- foreach(i=seq(K), .combine=cbind) %dopar% {
         omit <- all.folds[[i]]
@@ -518,7 +520,8 @@ predict.mbst <- function(object, newdata=NULL, newy=NULL, mstop=NULL, type=c("re
         fit <- mbst(x[ - omit,,drop=FALSE  ], y[ - omit], cost = cost, family = family, learner = learner, ctrl = ctrl.cv, ...)
 	predict.mbst(fit, newdata = x[omit,  ,drop=FALSE], newy=y[ omit], mstop = mstop, type=type)
     }
-    stopImplicitCluster()
+    eval(parse(text="parallel:::stopCluster(cl)"))
+    #stopImplicitCluster()
     cv <- apply(residmat, 1, mean)
     cv.error <- sqrt(apply(residmat, 1, var)/K)
     object<-list(residmat=residmat, mstop = fraction, cv = cv, cv.error = cv.error)

@@ -698,7 +698,8 @@ evalerr <- function(family, y, yhat){
     if(family %in% c("gaussian", "poisson") && type =="error") stop("misclassification is Not applicable for family ", family, "\n")
     all.folds <- cv.folds(length(y), K)
     fraction <- 1:mstop
-    registerDoParallel(cores=n.cores)
+    cl <- eval(parse(text="parallel:::makeCluster(n.cores)"))
+    registerDoParallel(cl)
     i <- 1  ###needed to pass R CMD check with parallel code below
     residmat <- foreach(i=seq(K), .combine=cbind) %dopar% {
         omit <- all.folds[[i]]
@@ -708,7 +709,8 @@ evalerr <- function(family, y, yhat){
         fit <- bst(x[ - omit,,drop=FALSE  ], y[ - omit], cost = cost, family = family, learner = learner, ctrl = ctrl.cv, ...)
         predict(fit, newdata = x[omit,  ,drop=FALSE], newy=y[omit], mstop = mstop, type=type)
     }
-    stopImplicitCluster()
+    #stopImplicitCluster()
+    eval(parse(text="parallel:::stopCluster(cl)"))
     cv <- apply(residmat, 1, mean)
     cv.error <- sqrt(apply(residmat, 1, var)/K)
     object<-list(residmat = residmat, mstop = fraction, cv = cv, cv.error = cv.error, family=family)

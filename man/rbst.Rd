@@ -37,8 +37,7 @@ An MM algorithm operates by creating a convex surrogate function that majorizes 
   \code{\link{plot}} and \code{\link{predict}} methods are available for linear models.
   For nonlinear models, methods \code{\link{print}} and \code{\link{predict}} are available.
 \item{x, y, cost, rfamily, learner, control.tree, maxdepth}{These are input variables and parameters}
-\item{ctrl}{the input \code{ctrl} with possible updated \code{fk} if \code{family="tgaussian", "thingeDC", 
-"tbinomDC", "binomdDC", "tpoisson"}}
+\item{ctrl}{the input \code{ctrl} with possible updated \code{fk} if \code{family="tgaussian"}, \code{"thingeDC"}, \code{"tbinomDC"}, \code{"binomdDC"} or \code{"tpoisson"}.}
 \item{yhat}{predicted function estimates}
 \item{ens}{a list of length \code{mstop}. Each element is a fitted model to the psedo residuals, defined as negative gradient of loss function at the current estimated function}
 \item{ml.fit}{the last element of \code{ens}}

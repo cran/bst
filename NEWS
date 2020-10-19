@@ -84,3 +84,6 @@
                 CHANGES in `bst' VERSION 0.3-19 (07-24-2019)
   o  add detailed description on s value in man/bst_control.Rd
 
+                CHANGES in `bst' VERSION 0.3-22 (10-18-2020)
+  o  change parallel computing codes in cross-validation
+

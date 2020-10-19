@@ -37,8 +37,7 @@ For \code{family="huber"}, if \code{sh} is not provided, \code{sh} is then updat
 }
 
 \details{
- Objects to specify parameters of the boosting algorithms implemented in \code{\link{bst}}, via the \code{ctrl} argument. 
- 
+ Objects to specify parameters of the boosting algorithms implemented in \code{\link{bst}}, via the \code{ctrl} argument.  
 The \code{s} value is for robust nonconvex loss where smaller \code{s} value is more robust to outliers with \code{family="closs", "tbinom", "thinge", "tbinomd"}, and larger \code{s} value more robust with \code{family="clossR", "gloss", "qloss"}.
 
 For \code{family="closs"}, if \code{s=2}, the loss is similar to the square loss; if \code{s=1}, the loss function is an approximation of the hinge loss; for smaller values, the loss function approaches the 0-1 loss function if \code{s<1}, the loss function is a nonconvex function of the margin.

@@ -152,7 +152,9 @@ rbst <- function(x,y, cost=0.5, rfamily=c("tgaussian", "thuber", "thinge", "tbin
     if(rfamily %in% c("tgaussian", "thuber", "tpoisson") && type =="error") stop("misclassification is Not applicable for rfamily ", rfamily, "\n")
     all.folds <- cv.folds(length(y), K)
     fraction <- 1:mstop
-    registerDoParallel(cores=n.cores)
+    cl <- eval(parse(text="parallel:::makeCluster(n.cores)"))
+    registerDoParallel(cl)
+    #registerDoParallel(cores=n.cores)
     i <- 1  ###needed to pass R CMD check with parallel code below
     residmat <- foreach(i=seq(K), .combine=cbind) %dopar% {
                                         #for(i in seq(K)) {
@@ -164,7 +166,8 @@ rbst <- function(x,y, cost=0.5, rfamily=c("tgaussian", "thuber", "thinge", "tbin
         predict(fit, newdata = x[omit,  ,drop=FALSE], newy=y[omit], mstop = mstop, type=type)
 
     }
-    stopImplicitCluster()
+    #stopImplicitCluster()
+    eval(parse(text="parallel:::stopCluster(cl)"))
     cv <- apply(residmat, 1, mean)
     cv.error <- sqrt(apply(residmat, 1, var)/K)
     object<-list(residmat = residmat, mstop = fraction, cv = cv, cv.error = cv.error, rfamily=rfamily)
