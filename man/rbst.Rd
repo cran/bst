@@ -23,7 +23,7 @@ control.tree=list(maxdepth = 1), learner=c("ls","sm","tree"),del=1e-10)
       \code{sm} smoothing splines,
       \code{tree} regression trees.
 }
-  \item{del}{convergency critera}
+  \item{del}{convergency criteria}
 }
 \details{
 An MM algorithm operates by creating a convex surrogate function that majorizes the nonconvex objective function. When the surrogate function is minimized with gradient boosting algorithm, the desired objective function is decreased. The MM algorithm contains difference of convex (DC) algorithm for \code{rfamily=c("tgaussian", "thuber","thinge", "tbinom", "binomd", "texpo", "tpoisson")} and quadratic majorization boosting algorithm (QMBA) for \code{rfamily=c("clossR", "closs", "gloss", "qloss")}. 
@@ -39,7 +39,7 @@ An MM algorithm operates by creating a convex surrogate function that majorizes 
 \item{x, y, cost, rfamily, learner, control.tree, maxdepth}{These are input variables and parameters}
 \item{ctrl}{the input \code{ctrl} with possible updated \code{fk} if \code{family="tgaussian"}, \code{"thingeDC"}, \code{"tbinomDC"}, \code{"binomdDC"} or \code{"tpoisson"}.}
 \item{yhat}{predicted function estimates}
-\item{ens}{a list of length \code{mstop}. Each element is a fitted model to the psedo residuals, defined as negative gradient of loss function at the current estimated function}
+\item{ens}{a list of length \code{mstop}. Each element is a fitted model to the pseudo residuals, defined as negative gradient of loss function at the current estimated function}
 \item{ml.fit}{the last element of \code{ens}}
 \item{ensemble}{a vector of length \code{mstop}. Each element is the variable selected in each boosting step when applicable}
 \item{xselect}{selected variables in \code{mstop}}

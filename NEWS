@@ -87,3 +87,6 @@
                 CHANGES in `bst' VERSION 0.3-22 (10-18-2020)
   o  change parallel computing codes in cross-validation
 
+                CHANGES in `bst' VERSION 0.3-23 (10-30-2020)
+  o  editorial changes to Rd files
+

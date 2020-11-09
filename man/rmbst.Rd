@@ -2,7 +2,7 @@
 \alias{rmbst}
 \title{ Robust Boosting for Multi-class Robust Loss Functions}
 \description{
-  MM (majorization/minization) based gradient boosting for optimizing nonconvex robust loss functions with componentwise
+  MM (majorization/minimization) based gradient boosting for optimizing nonconvex robust loss functions with componentwise
   linear, smoothing splines, tree models as base learners.
 }
 
@@ -22,7 +22,7 @@ control.tree=list(maxdepth = 1),learner=c("ls","sm","tree"),del=1e-10)
       \code{sm} smoothing splines,
       \code{tree} regression trees.
 }
-  \item{del}{convergency critera}
+  \item{del}{convergency criteria}
 }
 \details{
 An MM algorithm operates by creating a convex surrogate function that majorizes the nonconvex objective function. When the surrogate function is minimized with gradient boosting algorithm, the desired objective function is decreased. The MM algorithm contains difference of convex (DC) for \code{rfamily="thinge"}, and quadratic majorization boosting algorithm (QMBA) for \code{rfamily="closs"}. 
@@ -34,7 +34,7 @@ An MM algorithm operates by creating a convex surrogate function that majorizes 
 \item{x, y, cost, rfamily, learner, control.tree, maxdepth}{These are input variables and parameters}
 \item{ctrl}{the input \code{ctrl} with possible updated \code{fk} if \code{type="adaptive"}}
 \item{yhat}{predicted function estimates}
-\item{ens}{a list of length \code{mstop}. Each element is a fitted model to the psedo residuals, defined as negative gradient of loss function at the current estimated function}
+\item{ens}{a list of length \code{mstop}. Each element is a fitted model to the pseudo residuals, defined as negative gradient of loss function at the current estimated function}
 \item{ml.fit}{the last element of \code{ens}}
 \item{ensemble}{a vector of length \code{mstop}. Each element is the variable selected in each boosting step when applicable}
 \item{xselect}{selected variables in \code{mstop}}

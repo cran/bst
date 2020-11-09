@@ -14,7 +14,7 @@ rbstpath(x, y, rmstop=seq(40, 400, by=20), ctrl=bst_control(), del=1e-16, ...)
   \item{y}{ vector of responses. \code{y} must be in \{1, -1\}. }
   \item{rmstop}{ vector of boosting iterations}
   \item{ctrl}{ an object of class \code{\link{bst_control}}.}
-  \item{del}{convergency critera}
+  \item{del}{convergency criteria}
   \item{...}{arguments passed to \code{rbst}}
 }
 \details{

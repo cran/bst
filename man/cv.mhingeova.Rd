@@ -11,7 +11,7 @@ m2=200, trace=FALSE, plot.it = TRUE, se = TRUE, ...)
 }
 \arguments{
   \item{x}{ a data frame containing the variables in the model.}
-  \item{y}{ vector of multi class responses. \code{y} must be an interger vector from 1 to C for C class problem. }
+  \item{y}{ vector of multi class responses. \code{y} must be an integer vector from 1 to C for C class problem. }
   \item{balance}{ logical value. If TRUE, The K
 parts were roughly balanced, ensuring that the classes were distributed
 proportionally among each of the K parts.}

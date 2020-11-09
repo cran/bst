@@ -48,7 +48,7 @@ Implementing the negative gradient corresponding
   \item{\dots}{ additional arguments. }
 }
 \details{
- Boosting algorithms for classification and regression problems. In a classification problem, suppose \eqn{f}{f} is a classifier for a reponse \eqn{y}{y}. A cost-sensitive or weighted loss function is \deqn{L(y,f,cost)=l(y,f,cost)\max(0, (1-yf))}{L(y,f,cost)=l(y,f,cost)max(0, (1-yf)).} For \code{family="hinge"}, 
+ Boosting algorithms for classification and regression problems. In a classification problem, suppose \eqn{f}{f} is a classifier for a response \eqn{y}{y}. A cost-sensitive or weighted loss function is \deqn{L(y,f,cost)=l(y,f,cost)\max(0, (1-yf))}{L(y,f,cost)=l(y,f,cost)max(0, (1-yf)).} For \code{family="hinge"}, 
 \deqn{l(y,f,cost)= 
 1-cost, if \, y= +1;
 \quad cost, if \, y= -1}{l(y,f,cost)= 1-cost, if y = +1; = cost, if y = -1.} For \code{family="hinge2"}, 
@@ -63,7 +63,7 @@ For twin boosting if \code{twinboost=TRUE}, there are two types of adaptive boos
 \item{x, y, cost, family, learner, control.tree, maxdepth}{These are input variables and parameters}
 \item{ctrl}{the input \code{ctrl} with possible updated \code{fk} if \code{family="thingeDC", "tbinomDC", "binomdDC"}}
 \item{yhat}{predicted function estimates}
-\item{ens}{a list of length \code{mstop}. Each element is a fitted model to the psedo residuals, defined as negative gradient of loss function at the current estimated function}
+\item{ens}{a list of length \code{mstop}. Each element is a fitted model to the pseudo residuals, defined as negative gradient of loss function at the current estimated function}
 \item{ml.fit}{the last element of \code{ens}}
 \item{ensemble}{a vector of length \code{mstop}. Each element is the variable selected in each boosting step when applicable}
 \item{xselect}{selected variables in \code{mstop}}

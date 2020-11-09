@@ -39,7 +39,7 @@ type=c("response", "class", "loss", "error"), ...)
   \item{\dots}{ additional arguments. }
 }
 \details{
- A linear or nonlinear classifier is fitted using a boosting algorithm for multi-class responses. This function is different from \code{mhingebst} on how to deal with zero-to-sume constraint and loss functions. If \code{family="hinge"}, the loss function is the same as in \code{mhingebst} but the boosting algorithm is different. If \code{family="hinge2"}, the loss function is different from \code{family="hinge"}: the response is not recoded as in Wang (2012). In this case, the loss function is  
+ A linear or nonlinear classifier is fitted using a boosting algorithm for multi-class responses. This function is different from \code{mhingebst} on how to deal with zero-to-sum constraint and loss functions. If \code{family="hinge"}, the loss function is the same as in \code{mhingebst} but the boosting algorithm is different. If \code{family="hinge2"}, the loss function is different from \code{family="hinge"}: the response is not recoded as in Wang (2012). In this case, the loss function is  
 \deqn{\sum{I(y_i \neq j)(f_j+1)_+}.} \code{family="thingeDC"} for robust loss function used in the DCB algorithm.
 }
 \value{
@@ -49,7 +49,7 @@ type=c("response", "class", "loss", "error"), ...)
 \item{x, y, cost, family, learner, control.tree, maxdepth}{These are input variables and parameters}
 \item{ctrl}{the input \code{ctrl} with possible updated \code{fk} if \code{family="thingeDC"}}
 \item{yhat}{predicted function estimates}
-\item{ens}{a list of length \code{mstop}. Each element is a fitted model to the psedo residuals, defined as negative gradient of loss function at the current estimated function}
+\item{ens}{a list of length \code{mstop}. Each element is a fitted model to the pseudo residuals, defined as negative gradient of loss function at the current estimated function}
 \item{ml.fit}{the last element of \code{ens}}
 \item{ensemble}{a vector of length \code{mstop}. Each element is the variable selected in each boosting step when applicable}
 \item{xselect}{selected variables in \code{mstop}}
