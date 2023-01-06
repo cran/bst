@@ -12,8 +12,8 @@ library("bst")
 #  dat1 <- read.delim(paste(tmp, dat1, sep=""), sep=",", header=FALSE, skip=5)
 #  dat2 <- "segmentation.test"
 #  dat2 <- read.delim(paste(tmp, dat2, sep=""), sep=",", header=FALSE, skip=5)
-#  dat1[,1] <- as.numeric(dat1[,1])
-#  dat2[,1] <- as.numeric(dat2[,1])
+#  dat1[,1] <- as.numeric(factor(dat1[,1]))
+#  dat2[,1] <- as.numeric(factor(dat2[,1]))
 #  m <- 500
 #  dat.m1 <- mbst(x=dat1[,-1], y=dat1[,1], ctrl = bst_control(mstop=m), control.tree=list(maxdepth=6), family = "hinge", learner = "tree")
 #  err.te1 <- predict(dat.m1, newdata=dat2[,-1], newy=dat2[,1], mstop=m, type="error")
@@ -67,12 +67,12 @@ library("bst")
 #  points(err.te3,  type="l", lty="dotted", col="red")
 #  legend("topright", c("mbst_hinge", "mbst_hinge2", "mhingebst"), lty=c("solid", "dashed", "dotted"), col=c("black", "blue", "red"))
 
-## ----echo=TRUE, results='hide', eval=F------------------------------
+## ----echo=TRUE, eval=F----------------------------------------------
 #  dat <- "https://archive.ics.uci.edu/ml/machine-learning-databases/glass/glass.data"
 #  dat <- read.delim(dat, sep=",", header=FALSE)[,-1]
 #  ### there is no class 4
 #  table(dat[,10])
-#  ### recode class label
+#  ### must recode class label such that the class labels are consecutive, which is how the code was designed to work
 #  id <- dat[,10] > 3
 #  dat[id, 10] <- dat[id,10] - 1
 #  table(dat[,10])
@@ -91,12 +91,13 @@ library("bst")
 #  err.te2 <- predict(dat.m2, newdata=test[,-p], newy=test[,p], mstop=m, type="error")
 #  dat.m3 <- mhingebst(x=train[,-p], y=train[,p], ctrl = bst_control(mstop=m), control.tree=list(maxdepth=6), family = "hinge", learner = "tree")
 #  err.te3 <- predict(dat.m3, newdata=test[,-p], newy=test[,p], mstop=m, type="error")
-#  plot(err.te1, type="l", xlab="Iteration", ylab="Test Error")
+#  plot(err.te1, type="l", xlab="Iteration", ylab="Test Error", ylim=c(0.15, 0.36))
 #  points(err.te2,  type="l", lty="dashed", col="blue")
 #  points(err.te3,  type="l", lty="dotted", col="red")
 #  legend("topright", c("mbst_hinge", "mbst_hinge2", "mhingebst"), lty=c("solid", "dashed", "dotted"), col=c("black", "blue", "red"))
 
-## ----echo=FALSE, eval= FALSE----------------------------------------
+## ----echo=FALSE,  eval= FALSE---------------------------------------
+#  ### no results were produced
 #  ### cross-validation
 #  dat.cvm1 <- cv.mbst(x=dat[,-p], y=dat[,p], balance=TRUE, K=10, ctrl = bst_control(mstop=m), control.tree=list(maxdepth=6), family = "hinge", learner = "tree", type="error")
 #  dat.cvm2 <- cv.mbst(x=dat[,-p], y=dat[,p], balance=TRUE, K=10, ctrl = bst_control(mstop=m), control.tree=list(maxdepth=6), family = "hinge2", learner = "tree", type="error")

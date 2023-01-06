@@ -44,9 +44,9 @@ An MM algorithm operates by creating a convex surrogate function that majorizes 
 
   Zhu Wang (2018),
   Quadratic Majorization for Nonconvex Loss with
-                Applications to the Boosting Algorithm, \emph{Journal of Computational and Graphical Statistics}, \bold{27}(3), 491-502, \url{https://dx.doi.org/10.1080/10618600.2018.1424635}
+                Applications to the Boosting Algorithm, \emph{Journal of Computational and Graphical Statistics}, \bold{27}(3), 491-502, \doi{10.1080/10618600.2018.1424635}
   
-  Zhu Wang (2018), Robust boosting with truncated loss functions, \emph{Electronic Journal of Statistics}, \bold{12}(1), 599-650, \url{https://doi.org/10.1214/18-EJS1404}
+  Zhu Wang (2018), Robust boosting with truncated loss functions, \emph{Electronic Journal of Statistics}, \bold{12}(1), 599-650, \doi{10.1214/18-EJS1404}
 
 }
 
